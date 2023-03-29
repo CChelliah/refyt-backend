@@ -12,7 +12,7 @@ func GetAll(productRepo repo.ProductRepository) gin.HandlerFunc {
 		products, err := productRepo.FindAll()
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, "internal server error")
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 

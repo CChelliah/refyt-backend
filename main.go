@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
+	"trading-card-app-backend/billing"
 	"trading-card-app-backend/common"
 	"trading-card-app-backend/config"
 	"trading-card-app-backend/products"
@@ -43,6 +44,7 @@ func main() {
 	users.Routes(router, env)
 	products.Routes(router, env)
 	sellers.Routes(router, env)
+	billing.Routes(router, env)
 
 	router.Run(":8080")
 }

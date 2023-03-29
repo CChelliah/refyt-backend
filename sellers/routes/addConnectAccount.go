@@ -10,11 +10,20 @@ import (
 func AddSellerAccount(sellerRepo *repo.SellerRepository, stripeKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		uid := c.Param("uid")
+		uid := c.GetString("uid")
+
+		if uid == "" {
+			c.JSON(http.StatusUnauthorized, "unauthorized user")
+			return
+		}
 
 		seller, err := sellerRepo.FindSeller(uid)
 
-		if err != nil {
+		switch {
+		case seller.ConnectAccountID != "":
+			c.JSON(http.StatusConflict, "seller account already exists")
+			return
+		case err != nil:
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}

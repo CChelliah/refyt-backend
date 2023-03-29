@@ -18,7 +18,7 @@ func Routes(route *gin.Engine, env *common.Env) {
 		panic("Unable to find stripe API Key")
 	}
 
-	user := route.Group("/sellers/:uid")
+	user := route.Group("/sellers")
 	{
 		user.POST("", routes.AddSellerAccount(&sellerRepo, stripeKey))
 	}

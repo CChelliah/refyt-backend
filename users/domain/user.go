@@ -9,6 +9,7 @@ type User struct {
 	Email            string    `json:"email"`
 	CustomerNumber   string    `json:"customerNumber"`
 	StripeCustomerID string    `json:"stripeCustomerID"`
+	StripeConnectID  *string   `json:"stripeConnectID"`
 	CreatedAt        time.Time `json:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt"`
 }

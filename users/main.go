@@ -21,5 +21,6 @@ func Routes(route *gin.Engine, env *common.Env) {
 	user := route.Group("/users")
 	{
 		user.POST("", routes.Create(&userRepo, stripeKey))
+		user.GET("", routes.Get(&userRepo))
 	}
 }

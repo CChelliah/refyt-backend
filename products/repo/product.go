@@ -1,10 +1,12 @@
 package repo
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
 	"trading-card-app-backend/common"
+	"trading-card-app-backend/common/uow"
 	"trading-card-app-backend/products/domain"
 )
 
@@ -14,6 +16,7 @@ type IProductRepository interface {
 	FindByID(productID string) (product domain.Product, err error)
 	DeleteProduct(productID string) (err error)
 	FindAll() (product []domain.Product, err error)
+	FindByUserID(userID string) (product []domain.Product, err error)
 }
 
 type ProductRepository struct {
@@ -33,22 +36,29 @@ func NewProductRepository(env *common.Env) (productRepo ProductRepository) {
 	return productRepo
 }
 
-func (repo *ProductRepository) CreateProduct(product domain.Product) (domain.Product, error) {
+func (repo *ProductRepository) InsertProduct(ctx context.Context, uow uow.UnitOfWork, product domain.Product, uid string) (domain.Product, error) {
 
-	err := repo.db.QueryRow(createProduct,
+	err := uow.GetTx().QueryRowContext(ctx, createProduct,
 		product.ProductID,
-		product.Title,
+		product.ProductName,
 		product.Description,
 		product.Quantity,
 		product.Price,
+		product.RRP,
+		product.Designer,
+		product.FitNotes,
+		uid,
 		product.CreatedAt,
 		product.UpdatedAt,
 	).Scan(
 		&product.ProductID,
-		&product.Title,
+		&product.ProductName,
 		&product.Description,
 		&product.Quantity,
 		&product.Price,
+		&product.RRP,
+		&product.Designer,
+		&product.FitNotes,
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
@@ -60,11 +70,11 @@ func (repo *ProductRepository) CreateProduct(product domain.Product) (domain.Pro
 	return product, nil
 }
 
-func (repo *ProductRepository) UpdateProduct(productID string, title string, description string, quantity int64, price int64) (product domain.Product, err error) {
+func (repo *ProductRepository) UpdateProduct(ctx context.Context, uow uow.UnitOfWork, productID string, title string, description string, quantity int64, price int64) (product domain.Product, err error) {
 
 	utcNow := time.Now().UTC()
 
-	err = repo.db.QueryRow(updateProduct,
+	err = uow.GetTx().QueryRowContext(ctx, updateProduct,
 		productID,
 		title,
 		description,
@@ -73,10 +83,13 @@ func (repo *ProductRepository) UpdateProduct(productID string, title string, des
 		utcNow,
 	).Scan(
 		&product.ProductID,
-		&product.Title,
+		&product.ProductName,
 		&product.Description,
 		&product.Quantity,
 		&product.Price,
+		&product.RRP,
+		&product.Designer,
+		&product.FitNotes,
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
@@ -97,10 +110,13 @@ func (repo *ProductRepository) FindByID(productID string) (product domain.Produc
 		productID,
 	).Scan(
 		&product.ProductID,
-		&product.Title,
+		&product.ProductName,
 		&product.Description,
 		&product.Quantity,
 		&product.Price,
+		&product.RRP,
+		&product.Designer,
+		&product.FitNotes,
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
@@ -115,9 +131,9 @@ func (repo *ProductRepository) FindByID(productID string) (product domain.Produc
 	return product, nil
 }
 
-func (repo *ProductRepository) DeleteProduct(productID string) (err error) {
+func (repo *ProductRepository) DeleteProduct(ctx context.Context, uow uow.UnitOfWork, productID string) (err error) {
 
-	res, err := repo.db.Exec(deleteProduct, productID)
+	res, err := uow.GetTx().ExecContext(ctx, deleteProduct, productID)
 
 	if err != nil {
 		return err
@@ -153,10 +169,55 @@ func (repo *ProductRepository) FindAll() (products []domain.Product, err error) 
 
 		err = rows.Scan(
 			&product.ProductID,
-			&product.Title,
+			&product.ProductName,
 			&product.Description,
 			&product.Quantity,
 			&product.Price,
+			&product.RRP,
+			&product.Designer,
+			&product.FitNotes,
+			&product.CreatedAt,
+			&product.UpdatedAt,
+		)
+
+		if err != nil {
+			return []domain.Product{}, err
+		}
+
+		products = append(products, product)
+	}
+
+	if err = rows.Err(); err != nil {
+		return []domain.Product{}, err
+	}
+
+	return products, nil
+}
+
+func (repo *ProductRepository) FindByUserID(userID string) (products []domain.Product, err error) {
+	products = []domain.Product{}
+
+	rows, err := repo.db.Query(findAllByUserID, userID)
+
+	if err != nil {
+		return []domain.Product{}, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var product domain.Product
+
+		err = rows.Scan(
+			&product.ProductID,
+			&product.ProductName,
+			&product.Description,
+			&product.Quantity,
+			&product.Price,
+			&product.RRP,
+			&product.Designer,
+			&product.FitNotes,
 			&product.CreatedAt,
 			&product.UpdatedAt,
 		)

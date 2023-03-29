@@ -1,29 +1,47 @@
 package routes
 
 import (
+	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"trading-card-app-backend/common/uow"
 	"trading-card-app-backend/products/repo"
+	stripeGateway "trading-card-app-backend/products/stripe"
 )
 
-func Delete(productRepo repo.ProductRepository) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func Delete(productRepo repo.ProductRepository, stripeKey string, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 
-		productID := c.Param("productId")
+		productID := ctx.Param("productId")
 
-		err := productRepo.DeleteProduct(productID)
+		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
+
+			err = stripeGateway.DeleteProduct(productID, stripeKey)
+
+			if err != nil {
+				return err
+			}
+
+			err = productRepo.DeleteProduct(ctx, uow, productID)
+
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 
 		switch {
 		case errors.Is(err, repo.ErrProductNotFound):
-			c.JSON(http.StatusNotFound, err.Error())
+			ctx.JSON(http.StatusNotFound, err.Error())
 			return
 		case err != nil:
-			c.JSON(http.StatusInternalServerError, "internal server error")
+			ctx.JSON(http.StatusInternalServerError, "internal server error")
 			return
 		}
 
-		c.JSON(http.StatusNoContent, "")
+		ctx.JSON(http.StatusNoContent, "")
 		return
 	}
 }
