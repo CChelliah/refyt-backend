@@ -24,10 +24,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Create env file
-        run: |
-          touch .env
-          echo ${{ secrets.ENV }} >> .env
-          cat .env
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+          envkey_AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          envkey_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+          file_name: .env
       - name: create service account key
         id: create-json
         uses: jsdaniell/create-json@v1.2.2
@@ -52,4 +54,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/refyt
-            sudo systemctl restart refyt-backend
+            ./refyt-backend
