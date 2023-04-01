@@ -19,12 +19,20 @@ jobs:
       - name: Build and test
         run: |
           go build
-      - name: Print contents of root directory
-        run: ls -la
       - name: Install SSH key
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Create env file
+        run: |
+          touch .env
+          echo ${{ secrets.ENV }} >> .env
+          cat .env
+      - name: Create service account key
+        run: |
+          touch serviceAccountKey.json
+          echo ${{ secrets.SERVICE_ACCOUNT_KEY }} >> serviceAccountKey.json
+          cat .serviceAccountKey.json
       - name: Print contents of root directory
         run: ls -la
       - name: Copy binary to server
