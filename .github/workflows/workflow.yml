@@ -5,7 +5,7 @@ on:
     branches:
       - main
 jobs:
-  build:
+  build and deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -21,10 +21,6 @@ jobs:
           go build
       - name: Print contents of root directory
         run: ls -la
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Install SSH key
         uses: webfactory/ssh-agent@v0.7.0
         with:
@@ -37,7 +33,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: ./...
+          source: ./
           target: /home/ubuntu/refyt
       - name: SSH into server and restart app
         uses: appleboy/ssh-action@master
