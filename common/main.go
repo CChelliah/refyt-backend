@@ -5,10 +5,6 @@ import (
 	postgresdb "refyt-backend/common/database"
 )
 
-type IEnv interface {
-	*sql.DB
-}
-
 type Env struct {
 	Db *sql.DB
 }
