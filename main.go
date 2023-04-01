@@ -46,6 +46,6 @@ func main() {
 	sellers.Routes(router, env)
 	billing.Routes(router, env)
 
-	router.Run(":8080") //nolint
+	router.RunTLS(":8080", "rootCA.crt", "private.key") //nolint
 
 }
