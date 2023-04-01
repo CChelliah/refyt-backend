@@ -30,8 +30,7 @@ jobs:
           cat .env
       - name: Create service account key
         run: |
-          echo ${{ secrets.SERVICE_ACCOUNT_KEY }} >> serviceAccountKey.json
-          cat .serviceAccountKey.json
+          cat << EOF > serviceAccountKey.json ${{ secrets.SERVICE_ACCOUNT_KEY }} EOF
       - name: Print contents of root directory
         run: ls -la
       - name: Copy binary to server
