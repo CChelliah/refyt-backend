@@ -21,10 +21,6 @@ jobs:
           go build
       - name: Print contents of root directory
         run: ls -la
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Install SSH key
         uses: webfactory/ssh-agent@v0.7.0
         with:
