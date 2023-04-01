@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"refyt-backend/sellers/repo"
@@ -11,6 +12,8 @@ func AddSellerAccount(sellerRepo *repo.SellerRepository, stripeKey string) gin.H
 	return func(c *gin.Context) {
 
 		uid := c.GetString("uid")
+
+		fmt.Println("")
 
 		if uid == "" {
 			c.JSON(http.StatusUnauthorized, "unauthorized user")
