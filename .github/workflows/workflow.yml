@@ -28,7 +28,7 @@ jobs:
         with:
           envkey_STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
           envkey_AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-          envkey_AWS_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+          envkey_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           file_name: .env
       - name: create service account key
         id: create-json
