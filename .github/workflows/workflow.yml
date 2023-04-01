@@ -29,6 +29,10 @@ jobs:
           envkey_STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
           envkey_AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
           envkey_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          envkey_DB_USER: ${{ secrets.DB_USER }}
+          envkey_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          envkey_DB_HOST: ${{ secrets.DB_HOST }}
+          envkey_DB_PORT: ${{ secrets.DB_PORT }}
           file_name: .env
       - name: create service account key
         id: create-json

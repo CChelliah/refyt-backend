@@ -3,7 +3,7 @@ package repo
 import (
 	"database/sql"
 	"errors"
-	"refyt-backend/common"
+	"refyt-backend/libs"
 	"refyt-backend/sellers/domain"
 	"time"
 )
@@ -21,10 +21,10 @@ type SellerRepository struct {
 	db *sql.DB
 }
 
-func NewSellerRepository(env *common.Env) (sellerRepo SellerRepository) {
+func NewSellerRepository(db *libs.PostgresDatabase) (sellerRepo SellerRepository) {
 
 	sellerRepo = SellerRepository{
-		db: env.Db,
+		db: db.Db,
 	}
 
 	return sellerRepo

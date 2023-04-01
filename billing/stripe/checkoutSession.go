@@ -4,11 +4,18 @@ import (
 	"fmt"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/client"
+	"os"
 	"refyt-backend/billing/domain"
 	"strings"
 )
 
-func NewCheckoutSession(stripeKey string, items []domain.Booking) (session *stripe.CheckoutSession, err error) {
+func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession, err error) {
+
+	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
+
+	if !exists {
+		panic("Unable to find stripe API Key")
+	}
 
 	stripe.Key = stripeKey
 	var backends *stripe.Backends

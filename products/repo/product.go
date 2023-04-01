@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"refyt-backend/common"
-	"refyt-backend/common/uow"
+	"refyt-backend/libs"
+	"refyt-backend/libs/uow"
 	"refyt-backend/products/domain"
 	"time"
 )
@@ -27,10 +27,10 @@ var (
 	ErrProductNotFound = errors.New("product not found")
 )
 
-func NewProductRepository(env *common.Env) (productRepo ProductRepository) {
+func NewProductRepository(db *libs.PostgresDatabase) (productRepo ProductRepository) {
 
 	productRepo = ProductRepository{
-		db: env.Db,
+		db: db.Db,
 	}
 
 	return productRepo

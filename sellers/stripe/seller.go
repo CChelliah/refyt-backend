@@ -4,12 +4,20 @@ import (
 	"fmt"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/client"
+	"os"
 	"refyt-backend/sellers/domain"
 )
 
-func CreateSellerAccount(seller domain.Seller, stripeKey string) (account *stripe.Account, err error) {
+func CreateSellerAccount(seller domain.Seller) (account *stripe.Account, err error) {
 
 	fmt.Println("Creating seller account...")
+
+	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
+
+	if !exists {
+		return nil, fmt.Errorf("unable to find stripe API Key")
+	}
+
 	stripe.Key = stripeKey
 	var backends *stripe.Backends
 
@@ -36,12 +44,17 @@ func CreateSellerAccount(seller domain.Seller, stripeKey string) (account *strip
 	}
 
 	return account, nil
-
 }
 
-func CreateAccountLink(seller domain.Seller, stripeKey string) (accountLink *stripe.AccountLink, err error) {
+func CreateAccountLink(seller domain.Seller) (accountLink *stripe.AccountLink, err error) {
 
 	fmt.Println("Creating account link...")
+
+	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
+
+	if !exists {
+		return nil, fmt.Errorf("unable to find stripe API Key")
+	}
 
 	stripe.Key = stripeKey
 	var backends *stripe.Backends

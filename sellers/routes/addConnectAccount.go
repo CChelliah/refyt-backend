@@ -7,7 +7,7 @@ import (
 	stripeGateway "refyt-backend/sellers/stripe"
 )
 
-func AddSellerAccount(sellerRepo *repo.SellerRepository, stripeKey string) gin.HandlerFunc {
+func AddSellerAccount(sellerRepo *repo.SellerRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		uid := c.GetString("uid")
@@ -28,7 +28,7 @@ func AddSellerAccount(sellerRepo *repo.SellerRepository, stripeKey string) gin.H
 			return
 		}
 
-		account, err := stripeGateway.CreateSellerAccount(seller, stripeKey)
+		account, err := stripeGateway.CreateSellerAccount(seller)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
@@ -44,7 +44,7 @@ func AddSellerAccount(sellerRepo *repo.SellerRepository, stripeKey string) gin.H
 			return
 		}
 
-		accountLink, err := stripeGateway.CreateAccountLink(seller, stripeKey)
+		accountLink, err := stripeGateway.CreateAccountLink(seller)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())

@@ -14,7 +14,7 @@ type createUserPayload struct {
 	Email string `json:"email" binding:"required"`
 }
 
-func Create(userRepo *repo.UserRepository, stripeKey string) gin.HandlerFunc {
+func Create(userRepo *repo.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var payload createUserPayload
 
@@ -40,7 +40,7 @@ func Create(userRepo *repo.UserRepository, stripeKey string) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, err.Error())
 		}
 
-		newStripeCustomer, err := stripeGateway.NewCustomer(payload.Email, stripeKey)
+		newStripeCustomer, err := stripeGateway.NewCustomer(payload.Email)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())

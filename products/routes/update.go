@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"refyt-backend/common/uow"
+	"refyt-backend/libs/uow"
 	"refyt-backend/products/domain"
 	"refyt-backend/products/repo"
 	stripeGateway "refyt-backend/products/stripe"
@@ -22,7 +22,7 @@ type updateProductPayload struct {
 	FitNotes    *string `json:"fitNotes"`
 }
 
-func Update(productRepo repo.ProductRepository, stripeKey string, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
+func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var payload updateProductPayload
 
@@ -37,7 +37,7 @@ func Update(productRepo repo.ProductRepository, stripeKey string, uowManager uow
 
 		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
-			stripeProduct, err := stripeGateway.UpdateProduct(payload.ProductName, payload.Price, stripeKey, payload.Description, payload.RRP, payload.Designer, payload.FitNotes, productID)
+			stripeProduct, err := stripeGateway.UpdateProduct(payload.ProductName, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes, productID)
 
 			if err != nil {
 				return err

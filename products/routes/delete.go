@@ -5,19 +5,19 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"refyt-backend/common/uow"
+	"refyt-backend/libs/uow"
 	"refyt-backend/products/repo"
 	stripeGateway "refyt-backend/products/stripe"
 )
 
-func Delete(productRepo repo.ProductRepository, stripeKey string, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
+func Delete(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 		productID := ctx.Param("productId")
 
 		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
-			err = stripeGateway.DeleteProduct(productID, stripeKey)
+			err = stripeGateway.DeleteProduct(productID)
 
 			if err != nil {
 				return err

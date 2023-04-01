@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"refyt-backend/billing/domain"
-	"refyt-backend/common"
-	"refyt-backend/common/uow"
+	"refyt-backend/libs"
+	"refyt-backend/libs/uow"
 	"strings"
 )
 
@@ -19,7 +19,7 @@ type BillingRepository struct {
 	db *sql.DB
 }
 
-func NewBillingRepository(env *common.Env) (billingRepo BillingRepository) {
+func NewBillingRepository(env *libs.PostgresDatabase) (billingRepo BillingRepository) {
 
 	billingRepo = BillingRepository{
 		db: env.Db,

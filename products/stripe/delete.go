@@ -1,11 +1,19 @@
 package stripeGateway
 
 import (
+	"fmt"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/client"
+	"os"
 )
 
-func DeleteProduct(productID string, stripeKey string) (err error) {
+func DeleteProduct(productID string) (err error) {
+
+	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
+
+	if !exists {
+		return fmt.Errorf("unable to find stripe API Key")
+	}
 
 	stripe.Key = stripeKey
 	var backends *stripe.Backends

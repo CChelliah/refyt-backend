@@ -2,25 +2,18 @@ package users
 
 import (
 	"github.com/gin-gonic/gin"
-	"os"
-	"refyt-backend/common"
+	"refyt-backend/libs"
 	"refyt-backend/users/repo"
 	"refyt-backend/users/routes"
 )
 
-func Routes(route *gin.Engine, env *common.Env) {
+func Routes(route *gin.Engine, db *libs.PostgresDatabase) {
 
-	userRepo := repo.NewUserRepository(env)
-
-	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
-
-	if !exists {
-		panic("Unable to find stripe API Key")
-	}
+	userRepo := repo.NewUserRepository(db)
 
 	user := route.Group("/users")
 	{
-		user.POST("", routes.Create(&userRepo, stripeKey))
+		user.POST("", routes.Create(&userRepo))
 		user.GET("", routes.Get(&userRepo))
 	}
 }

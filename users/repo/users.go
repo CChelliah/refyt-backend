@@ -3,7 +3,7 @@ package repo
 import (
 	"database/sql"
 	"errors"
-	"refyt-backend/common"
+	"refyt-backend/libs"
 	"refyt-backend/users/domain"
 )
 
@@ -20,10 +20,10 @@ type UserRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository(env *common.Env) (userRepo UserRepository) {
+func NewUserRepository(db *libs.PostgresDatabase) (userRepo UserRepository) {
 
 	userRepo = UserRepository{
-		db: env.Db,
+		db: db.Db,
 	}
 
 	return userRepo

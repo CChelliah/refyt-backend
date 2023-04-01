@@ -1,12 +1,20 @@
 package stripeGateway
 
 import (
+	"fmt"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/client"
+	"os"
 	"strconv"
 )
 
-func NewProduct(productName string, price int64, stripeKey string, description string, rrp int64, designer string, fitNotes string) (product *stripe.Product, err error) {
+func NewProduct(productName string, price int64, description string, rrp int64, designer string, fitNotes string) (product *stripe.Product, err error) {
+
+	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
+
+	if !exists {
+		return nil, fmt.Errorf("unable to find stripe API Key")
+	}
 
 	stripe.Key = stripeKey
 	var backends *stripe.Backends

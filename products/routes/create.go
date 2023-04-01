@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"net/http"
-	"refyt-backend/common/uow"
+	"refyt-backend/libs/uow"
 	"refyt-backend/products/domain"
 	"refyt-backend/products/repo"
 	"refyt-backend/products/s3"
@@ -25,7 +25,7 @@ type createProductPayload struct {
 	ProductImage *multipart.FileHeader `form:"productImage"`
 }
 
-func Create(productRepo repo.ProductRepository, stripeKey string, uowManager uow.UnitOfWorkManager, accessKey string, secretKey string) gin.HandlerFunc {
+func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var payload createProductPayload
 
@@ -40,7 +40,7 @@ func Create(productRepo repo.ProductRepository, stripeKey string, uowManager uow
 
 		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
-			stripeProduct, err := stripeGateway.NewProduct(payload.ProductName, payload.Price, stripeKey, payload.Description, payload.RRP, payload.Designer, payload.FitNotes)
+			stripeProduct, err := stripeGateway.NewProduct(payload.ProductName, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes)
 
 			if err != nil {
 				return err
@@ -58,7 +58,7 @@ func Create(productRepo repo.ProductRepository, stripeKey string, uowManager uow
 				return err
 			}
 
-			err = s3.UploadFile(accessKey, secretKey, payload.ProductImage)
+			err = s3.UploadFile(payload.ProductImage)
 
 			if err != nil {
 				return err

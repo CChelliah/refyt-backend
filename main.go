@@ -7,8 +7,8 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 	"refyt-backend/billing"
-	"refyt-backend/common"
 	"refyt-backend/config"
+	"refyt-backend/libs"
 	"refyt-backend/products"
 	"refyt-backend/sellers"
 	"refyt-backend/users"
@@ -19,7 +19,18 @@ func main() {
 
 	firebaseAuth := config.SetupFirebase()
 
-	env := common.NewEnv()
+	err := godotenv.Load()
+
+	if err != nil {
+		panic("Err loading config")
+	}
+
+	db, err := libs.NewDatabase()
+
+	if err != nil {
+		panic("Err connecting to database")
+	}
+
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
@@ -35,16 +46,10 @@ func main() {
 
 	//router.Use(middleware.AuthMiddleware)
 
-	err := godotenv.Load()
-
-	if err != nil {
-		panic("Err loading config")
-	}
-
-	users.Routes(router, env)
-	products.Routes(router, env)
-	sellers.Routes(router, env)
-	billing.Routes(router, env)
+	users.Routes(router, db)
+	products.Routes(router, db)
+	sellers.Routes(router, db)
+	billing.Routes(router, db)
 
 	router.RunTLS(":8080", "rootCA.crt", "private.key") //nolint
 

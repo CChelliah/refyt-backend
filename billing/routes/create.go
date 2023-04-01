@@ -10,7 +10,7 @@ import (
 	"refyt-backend/billing/domain"
 	"refyt-backend/billing/repo"
 	stripeGateway "refyt-backend/billing/stripe"
-	"refyt-backend/common/uow"
+	"refyt-backend/libs/uow"
 	"time"
 )
 
@@ -27,7 +27,7 @@ type checkoutItemPayload struct {
 	EndDate   time.Time `json:"endDate" binding:"required"`
 }
 
-func CreateCheckout(billingRepo repo.BillingRepository, stripeKey string, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
+func CreateCheckout(billingRepo repo.BillingRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var payload createCheckoutPayload
 
@@ -66,7 +66,7 @@ func CreateCheckout(billingRepo repo.BillingRepository, stripeKey string, uowMan
 				return err
 			}
 
-			session, err = stripeGateway.NewCheckoutSession(stripeKey, newBookings)
+			session, err = stripeGateway.NewCheckoutSession(newBookings)
 
 			if err != nil {
 				return err

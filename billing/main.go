@@ -2,27 +2,20 @@ package billing
 
 import (
 	"github.com/gin-gonic/gin"
-	"os"
 	"refyt-backend/billing/repo"
 	"refyt-backend/billing/routes"
-	"refyt-backend/common"
-	"refyt-backend/common/uow"
+	"refyt-backend/libs"
+	"refyt-backend/libs/uow"
 )
 
-func Routes(route *gin.Engine, env *common.Env) {
+func Routes(route *gin.Engine, db *libs.PostgresDatabase) {
 
-	billingRepository := repo.NewBillingRepository(env)
+	billingRepository := repo.NewBillingRepository(db)
 
-	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
-
-	uowManager := uow.NewUnitOfWorkManager(env.Db)
-
-	if !exists {
-		panic("Unable to find stripe API Key")
-	}
+	uowManager := uow.NewUnitOfWorkManager(db.Db)
 
 	billing := route.Group("/")
 	{
-		billing.POST("/checkout", routes.CreateCheckout(billingRepository, stripeKey, uowManager))
+		billing.POST("/checkout", routes.CreateCheckout(billingRepository, uowManager))
 	}
 }
