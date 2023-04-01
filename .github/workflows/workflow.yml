@@ -42,5 +42,5 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/app
+            cd /home/ubuntu/refyt
             sudo systemctl restart refyt-backend
