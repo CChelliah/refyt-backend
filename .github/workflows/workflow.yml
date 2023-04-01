@@ -30,7 +30,6 @@ jobs:
           cat .env
       - name: Create service account key
         run: |
-          touch serviceAccountKey.json
           echo ${{ secrets.SERVICE_ACCOUNT_KEY }} >> serviceAccountKey.json
           cat .serviceAccountKey.json
       - name: Print contents of root directory
