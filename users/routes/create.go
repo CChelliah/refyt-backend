@@ -4,9 +4,9 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"trading-card-app-backend/users/domain"
-	"trading-card-app-backend/users/repo"
-	stripeGateway "trading-card-app-backend/users/stripe"
+	"refyt-backend/users/domain"
+	"refyt-backend/users/repo"
+	stripeGateway "refyt-backend/users/stripe"
 )
 
 type createUserPayload struct {
@@ -36,6 +36,10 @@ func Create(userRepo *repo.UserRepository, stripeKey string) gin.HandlerFunc {
 
 		user, err := domain.CreateUser(payload.Uid, payload.Email)
 
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+		}
+
 		newStripeCustomer, err := stripeGateway.NewCustomer(payload.Email, stripeKey)
 
 		if err != nil {
@@ -51,6 +55,5 @@ func Create(userRepo *repo.UserRepository, stripeKey string) gin.HandlerFunc {
 		}
 
 		c.JSON(200, newUser)
-		return
 	}
 }

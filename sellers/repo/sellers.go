@@ -3,9 +3,9 @@ package repo
 import (
 	"database/sql"
 	"errors"
+	"refyt-backend/common"
+	"refyt-backend/sellers/domain"
 	"time"
-	"trading-card-app-backend/common"
-	"trading-card-app-backend/sellers/domain"
 )
 
 var (

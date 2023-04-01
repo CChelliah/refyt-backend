@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/client"
-	"trading-card-app-backend/sellers/domain"
+	"refyt-backend/sellers/domain"
 )
 
 func CreateSellerAccount(seller domain.Seller, stripeKey string) (account *stripe.Account, err error) {

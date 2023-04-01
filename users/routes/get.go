@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"trading-card-app-backend/users/repo"
+	"refyt-backend/users/repo"
 )
 
 func Get(userRepo *repo.UserRepository) gin.HandlerFunc {
@@ -29,6 +29,5 @@ func Get(userRepo *repo.UserRepository) gin.HandlerFunc {
 		}
 
 		c.JSON(200, user)
-		return
 	}
 }

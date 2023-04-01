@@ -6,15 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"net/http"
-	"trading-card-app-backend/common/uow"
-	"trading-card-app-backend/products/domain"
-	"trading-card-app-backend/products/repo"
-	"trading-card-app-backend/products/s3"
-	stripeGateway "trading-card-app-backend/products/stripe"
+	"refyt-backend/common/uow"
+	"refyt-backend/products/domain"
+	"refyt-backend/products/repo"
+	"refyt-backend/products/s3"
+	stripeGateway "refyt-backend/products/stripe"
 )
 
 type createProductPayload struct {
-	ProductName  string                `form:"productName" binding:"required""`
+	ProductName  string                `form:"productName" binding:"required"`
 	Description  string                `form:"description" binding:"required"`
 	Quantity     int64                 `form:"quantity" binding:"required"`
 	Price        int64                 `form:"price" binding:"required"`
@@ -73,6 +73,5 @@ func Create(productRepo repo.ProductRepository, stripeKey string, uowManager uow
 		}
 
 		ctx.JSON(200, product)
-		return
 	}
 }

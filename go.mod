@@ -1,4 +1,4 @@
-module trading-card-app-backend
+module refyt-backend
 
 go 1.19
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"refyt-backend/common"
+	"refyt-backend/common/uow"
+	"refyt-backend/products/domain"
 	"time"
-	"trading-card-app-backend/common"
-	"trading-card-app-backend/common/uow"
-	"trading-card-app-backend/products/domain"
 )
 
 type IProductRepository interface {

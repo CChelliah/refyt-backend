@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"refyt-backend/billing/domain"
+	"refyt-backend/common"
+	"refyt-backend/common/uow"
 	"strings"
-	"trading-card-app-backend/billing/domain"
-	"trading-card-app-backend/common"
-	"trading-card-app-backend/common/uow"
 )
 
 type IBillingRepository interface {

@@ -3,10 +3,10 @@ package billing
 import (
 	"github.com/gin-gonic/gin"
 	"os"
-	"trading-card-app-backend/billing/repo"
-	"trading-card-app-backend/billing/routes"
-	"trading-card-app-backend/common"
-	"trading-card-app-backend/common/uow"
+	"refyt-backend/billing/repo"
+	"refyt-backend/billing/routes"
+	"refyt-backend/common"
+	"refyt-backend/common/uow"
 )
 
 func Routes(route *gin.Engine, env *common.Env) {

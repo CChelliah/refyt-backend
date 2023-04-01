@@ -3,10 +3,10 @@ package products
 import (
 	"github.com/gin-gonic/gin"
 	"os"
-	"trading-card-app-backend/common"
-	"trading-card-app-backend/common/uow"
-	"trading-card-app-backend/products/repo"
-	"trading-card-app-backend/products/routes"
+	"refyt-backend/common"
+	"refyt-backend/common/uow"
+	"refyt-backend/products/repo"
+	"refyt-backend/products/routes"
 )
 
 func Routes(route *gin.Engine, env *common.Env) {
@@ -14,14 +14,24 @@ func Routes(route *gin.Engine, env *common.Env) {
 	productRepository := repo.NewProductRepository(env)
 
 	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
-	accessKey, exists := os.LookupEnv("AWS_ACCESS_KEY")
-	secretKey, exists := os.LookupEnv("AWS_SECRET_ACCESS_KEY")
-
-	uowManager := uow.NewUnitOfWorkManager(env.Db)
 
 	if !exists {
 		panic("Unable to find stripe API Key")
 	}
+
+	accessKey, exists := os.LookupEnv("AWS_ACCESS_KEY")
+
+	if !exists {
+		panic("Unable to find stripe access key")
+	}
+
+	secretKey, exists := os.LookupEnv("AWS_SECRET_ACCESS_KEY")
+
+	if !exists {
+		panic("Unable to find secret access key")
+	}
+
+	uowManager := uow.NewUnitOfWorkManager(env.Db)
 
 	product := route.Group("/products")
 	{

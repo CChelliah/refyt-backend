@@ -3,9 +3,9 @@ package users
 import (
 	"github.com/gin-gonic/gin"
 	"os"
-	"trading-card-app-backend/common"
-	"trading-card-app-backend/users/repo"
-	"trading-card-app-backend/users/routes"
+	"refyt-backend/common"
+	"refyt-backend/users/repo"
+	"refyt-backend/users/routes"
 )
 
 func Routes(route *gin.Engine, env *common.Env) {

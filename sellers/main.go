@@ -3,9 +3,9 @@ package sellers
 import (
 	"github.com/gin-gonic/gin"
 	"os"
-	"trading-card-app-backend/common"
-	"trading-card-app-backend/sellers/repo"
-	"trading-card-app-backend/sellers/routes"
+	"refyt-backend/common"
+	"refyt-backend/sellers/repo"
+	"refyt-backend/sellers/routes"
 )
 
 func Routes(route *gin.Engine, env *common.Env) {

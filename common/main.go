@@ -2,7 +2,7 @@ package common
 
 import (
 	"database/sql"
-	"trading-card-app-backend/common/database"
+	postgresdb "refyt-backend/common/database"
 )
 
 type IEnv interface {

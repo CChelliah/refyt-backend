@@ -3,8 +3,8 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"trading-card-app-backend/sellers/repo"
-	stripeGateway "trading-card-app-backend/sellers/stripe"
+	"refyt-backend/sellers/repo"
+	stripeGateway "refyt-backend/sellers/stripe"
 )
 
 func AddSellerAccount(sellerRepo *repo.SellerRepository, stripeKey string) gin.HandlerFunc {
@@ -52,6 +52,5 @@ func AddSellerAccount(sellerRepo *repo.SellerRepository, stripeKey string) gin.H
 		}
 
 		c.JSON(200, accountLink)
-		return
 	}
 }

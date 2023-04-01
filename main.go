@@ -6,12 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
-	"trading-card-app-backend/billing"
-	"trading-card-app-backend/common"
-	"trading-card-app-backend/config"
-	"trading-card-app-backend/products"
-	"trading-card-app-backend/sellers"
-	"trading-card-app-backend/users"
+	"refyt-backend/billing"
+	"refyt-backend/common"
+	"refyt-backend/config"
+	"refyt-backend/products"
+	"refyt-backend/sellers"
+	"refyt-backend/users"
 )
 
 func main() {
@@ -46,5 +46,6 @@ func main() {
 	sellers.Routes(router, env)
 	billing.Routes(router, env)
 
-	router.Run(":8080")
+	router.Run(":8080") //nolint
+
 }

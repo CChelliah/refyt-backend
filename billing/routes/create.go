@@ -6,11 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v74"
 	"net/http"
+	"refyt-backend/billing/domain"
+	"refyt-backend/billing/repo"
+	stripeGateway "refyt-backend/billing/stripe"
+	"refyt-backend/common/uow"
 	"time"
-	"trading-card-app-backend/billing/domain"
-	"trading-card-app-backend/billing/repo"
-	stripeGateway "trading-card-app-backend/billing/stripe"
-	"trading-card-app-backend/common/uow"
 )
 
 var (
@@ -81,13 +81,13 @@ func CreateCheckout(billingRepo repo.BillingRepository, stripeKey string, uowMan
 		switch {
 		case errors.Is(err, ErrNoBookings):
 			ctx.JSON(http.StatusBadRequest, err.Error())
+			return
 		case err != nil:
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		ctx.JSON(200, session)
-		return
 	}
 }
 

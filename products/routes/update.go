@@ -5,10 +5,10 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"trading-card-app-backend/common/uow"
-	"trading-card-app-backend/products/domain"
-	"trading-card-app-backend/products/repo"
-	stripeGateway "trading-card-app-backend/products/stripe"
+	"refyt-backend/common/uow"
+	"refyt-backend/products/domain"
+	"refyt-backend/products/repo"
+	stripeGateway "refyt-backend/products/stripe"
 )
 
 type updateProductPayload struct {
@@ -62,6 +62,5 @@ func Update(productRepo repo.ProductRepository, stripeKey string, uowManager uow
 		}
 
 		ctx.JSON(200, product)
-		return
 	}
 }

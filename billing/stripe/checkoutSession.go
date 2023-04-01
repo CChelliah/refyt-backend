@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/client"
+	"refyt-backend/billing/domain"
 	"strings"
-	"trading-card-app-backend/billing/domain"
 )
 
 func NewCheckoutSession(stripeKey string, items []domain.Booking) (session *stripe.CheckoutSession, err error) {
@@ -37,7 +37,7 @@ func NewCheckoutSession(stripeKey string, items []domain.Booking) (session *stri
 
 	for iter.Next() {
 		result := iter.Price()
-		if result.Active == true {
+		if result.Active {
 			fmt.Println(result.Product.ID)
 			fmt.Println(result.ID)
 			productIDToPrice[result.Product.ID] = result.ID
