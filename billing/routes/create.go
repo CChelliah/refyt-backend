@@ -3,7 +3,6 @@ package routes
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v74"
 	"net/http"
@@ -37,8 +36,6 @@ func CreateCheckout(billingRepo repo.BillingRepository, uowManager uow.UnitOfWor
 		}
 
 		var session *stripe.CheckoutSession
-
-		fmt.Println("")
 
 		customerID := "15xf5bidmhbPVSgMWHJSGMb32Vt1"
 
