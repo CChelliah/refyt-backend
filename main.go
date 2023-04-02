@@ -19,6 +19,8 @@ func main() {
 
 	firebaseAuth := config.SetupFirebase()
 
+	fmt.Println("")
+
 	err := godotenv.Load()
 
 	if err != nil {
