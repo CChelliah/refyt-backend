@@ -58,4 +58,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/refyt
+            make migrateup
             ./refyt-backend
