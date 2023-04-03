@@ -46,6 +46,8 @@ func main() {
 
 	//router.Use(middleware.AuthMiddleware)
 
+	fmt.Println("")
+
 	users.Routes(router, db)
 	products.Routes(router, db)
 	sellers.Routes(router, db)
