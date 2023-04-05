@@ -71,6 +71,8 @@ func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 				return err
 			}
 
+			fmt.Println("")
+
 			product, err = productRepo.InsertProduct(ctx, uow, product, "15xf5bidmhbPVSgMWHJSGMb32Vt1")
 
 			if err != nil {
