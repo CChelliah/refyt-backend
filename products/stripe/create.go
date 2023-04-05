@@ -47,3 +47,36 @@ func NewProduct(productName string, price int64, description string, rrp int64, 
 	return product, nil
 
 }
+
+func UpdateProductImages(productID string, imageUrls []string) (err error) {
+
+	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
+
+	if !exists {
+		return fmt.Errorf("unable to find stripe API Key")
+	}
+
+	stripe.Key = stripeKey
+	var backends *stripe.Backends
+
+	stripeClient := client.New(stripeKey, backends)
+
+	var images []*string
+
+	for _, img := range imageUrls {
+		images = append(images, &img)
+	}
+
+	params := &stripe.ProductParams{
+		Images: images,
+	}
+
+	_, err = stripeClient.Products.Update(productID, params)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}

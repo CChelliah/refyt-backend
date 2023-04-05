@@ -5,34 +5,44 @@ import (
 )
 
 type Product struct {
-	ProductID   string    `json:"productID"`
-	ProductName string    `json:"productName"`
-	Description string    `json:"description"`
-	Quantity    int64     `json:"quantity"`
-	Price       int64     `json:"price"`
-	RRP         int64     `json:"rrp"`
-	Designer    string    `json:"designer"`
-	FitNotes    string    `json:"fitNotes"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	ProductID     string    `json:"productID"`
+	Name          string    `json:"productName"`
+	Description   string    `json:"description"`
+	Designer      string    `json:"designer"`
+	Category      string    `json:"category"`
+	FitNotes      string    `json:"fitNotes"`
+	Size          int64     `json:"size"`
+	RRP           int64     `json:"rrp"`
+	Price         int64     `json:"price"`
+	ShippingPrice int64     `json:"shippingPrice"`
+	ImageUrls     []string  `json:"imageUrls"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
-func CreateProduct(productID string, productName string, description string, quantity int64, price int64, rrp int64, designer string, fitNotes string) (product Product, err error) {
+func CreateProduct(productID string, productName string, description string, price int64, rrp int64, designer string, fitNotes string, category string, size int64, shippingPrice int64) (product Product, err error) {
 
 	utcNow := time.Now().UTC()
 
 	product = Product{
-		ProductID:   productID,
-		ProductName: productName,
-		Description: description,
-		Quantity:    quantity,
-		Price:       price,
-		RRP:         rrp,
-		Designer:    designer,
-		FitNotes:    fitNotes,
-		CreatedAt:   utcNow,
-		UpdatedAt:   utcNow,
+		ProductID:     productID,
+		Name:          productName,
+		Description:   description,
+		Designer:      designer,
+		Category:      category,
+		FitNotes:      fitNotes,
+		Size:          size,
+		RRP:           rrp,
+		Price:         price,
+		ShippingPrice: shippingPrice,
+		CreatedAt:     utcNow,
+		UpdatedAt:     utcNow,
 	}
 
 	return product, nil
+}
+
+func (p *Product) AddImageUrls(imageUrls []string) {
+
+	p.ImageUrls = imageUrls
 }

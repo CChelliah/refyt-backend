@@ -1,0 +1,7 @@
+ALTER TABLE products
+ADD COLUMN category VARCHAR(100),
+ADD COLUMN shipping_price INTEGER,
+ADD COLUMN size INTEGER,
+ADD COLUMN images TEXT[],
+DROP COLUMN quantity;
+

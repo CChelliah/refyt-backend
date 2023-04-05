@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"github.com/lib/pq"
 	"refyt-backend/libs"
 	"refyt-backend/libs/uow"
 	"refyt-backend/products/domain"
@@ -39,31 +41,38 @@ func NewProductRepository(db *libs.PostgresDatabase) (productRepo ProductReposit
 func (repo *ProductRepository) InsertProduct(ctx context.Context, uow uow.UnitOfWork, product domain.Product, uid string) (domain.Product, error) {
 
 	err := uow.GetTx().QueryRowContext(ctx, createProduct,
-		product.ProductID,
-		product.ProductName,
-		product.Description,
-		product.Quantity,
-		product.Price,
-		product.RRP,
-		product.Designer,
-		product.FitNotes,
-		uid,
-		product.CreatedAt,
-		product.UpdatedAt,
+		&product.ProductID,
+		&product.Name,
+		&product.Description,
+		&product.Designer,
+		&product.Category,
+		&product.FitNotes,
+		&product.Size,
+		&product.RRP,
+		&product.Price,
+		&product.ShippingPrice,
+		&uid,
+		pq.Array(&product.ImageUrls),
+		&product.CreatedAt,
+		&product.UpdatedAt,
 	).Scan(
 		&product.ProductID,
-		&product.ProductName,
+		&product.Name,
 		&product.Description,
-		&product.Quantity,
-		&product.Price,
-		&product.RRP,
 		&product.Designer,
+		&product.Category,
 		&product.FitNotes,
+		&product.Size,
+		&product.RRP,
+		&product.Price,
+		&product.ShippingPrice,
+		pq.Array(&product.ImageUrls),
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
 
 	if err != nil {
+		fmt.Println(err.Error())
 		return domain.Product{}, err
 	}
 
@@ -83,13 +92,16 @@ func (repo *ProductRepository) UpdateProduct(ctx context.Context, uow uow.UnitOf
 		utcNow,
 	).Scan(
 		&product.ProductID,
-		&product.ProductName,
+		&product.Name,
 		&product.Description,
-		&product.Quantity,
-		&product.Price,
-		&product.RRP,
 		&product.Designer,
+		&product.Category,
 		&product.FitNotes,
+		&product.Size,
+		&product.RRP,
+		&product.Price,
+		&product.ShippingPrice,
+		pq.Array(&product.ImageUrls),
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
@@ -110,13 +122,16 @@ func (repo *ProductRepository) FindByID(productID string) (product domain.Produc
 		productID,
 	).Scan(
 		&product.ProductID,
-		&product.ProductName,
+		&product.Name,
 		&product.Description,
-		&product.Quantity,
-		&product.Price,
-		&product.RRP,
 		&product.Designer,
+		&product.Category,
 		&product.FitNotes,
+		&product.Size,
+		&product.RRP,
+		&product.Price,
+		&product.ShippingPrice,
+		pq.Array(&product.ImageUrls),
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
@@ -169,13 +184,16 @@ func (repo *ProductRepository) FindAll() (products []domain.Product, err error) 
 
 		err = rows.Scan(
 			&product.ProductID,
-			&product.ProductName,
+			&product.Name,
 			&product.Description,
-			&product.Quantity,
-			&product.Price,
-			&product.RRP,
 			&product.Designer,
+			&product.Category,
 			&product.FitNotes,
+			&product.Size,
+			&product.RRP,
+			&product.Price,
+			&product.ShippingPrice,
+			pq.Array(&product.ImageUrls),
 			&product.CreatedAt,
 			&product.UpdatedAt,
 		)
@@ -211,13 +229,16 @@ func (repo *ProductRepository) FindByUserID(userID string) (products []domain.Pr
 
 		err = rows.Scan(
 			&product.ProductID,
-			&product.ProductName,
+			&product.Name,
 			&product.Description,
-			&product.Quantity,
-			&product.Price,
-			&product.RRP,
 			&product.Designer,
+			&product.Category,
 			&product.FitNotes,
+			&product.Size,
+			&product.RRP,
+			&product.Price,
+			&product.ShippingPrice,
+			pq.Array(&product.ImageUrls),
 			&product.CreatedAt,
 			&product.UpdatedAt,
 		)

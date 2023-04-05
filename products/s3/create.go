@@ -10,18 +10,18 @@ import (
 	"os"
 )
 
-func UploadFile(productImage *multipart.FileHeader) (err error) {
+func UploadFile(productID string, productImages []*multipart.FileHeader) (imageUrls []string, err error) {
 
 	secretKey, exists := os.LookupEnv("AWS_SECRET_ACCESS_KEY")
 
 	if !exists {
-		return fmt.Errorf("unable to find secret access key")
+		return imageUrls, fmt.Errorf("unable to find secret access key")
 	}
 
 	accessKey, exists := os.LookupEnv("AWS_ACCESS_KEY")
 
 	if !exists {
-		return fmt.Errorf("unable to find secret access key")
+		return imageUrls, fmt.Errorf("unable to find secret access key")
 	}
 
 	sess, err := session.NewSession(&aws.Config{
@@ -31,32 +31,41 @@ func UploadFile(productImage *multipart.FileHeader) (err error) {
 	)
 
 	if err != nil {
-		return err
+		return imageUrls, err
 	}
 
 	client := s3.New(sess)
 
 	if err != nil {
-		return err
+		return imageUrls, err
 	}
 
-	file, err := productImage.Open()
+	imageUrls = []string{}
 
-	if err != nil {
-		return err
+	for i, productImage := range productImages {
+
+		file, err := productImage.Open()
+
+		if err != nil {
+			return imageUrls, err
+		}
+
+		bucket := "refyt"
+		key := fmt.Sprintf("%s-%d.jpg", productID, i)
+
+		_, err = client.PutObject(&s3.PutObjectInput{
+			Body:   file,
+			Bucket: aws.String(bucket),
+			Key:    aws.String(key),
+		})
+
+		imageUrls = append(imageUrls, fmt.Sprintf("https://refyt.s3-ap-southeast-2.amazonaws.com/%s", key))
+
+		if err != nil {
+			return imageUrls, err
+		}
+
 	}
 
-	bucket := "refyt"
-	key := productImage.Filename
-
-	_, err = client.PutObject(&s3.PutObjectInput{
-		Body:   file,
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return imageUrls, nil
 }

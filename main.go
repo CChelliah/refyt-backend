@@ -46,13 +46,13 @@ func main() {
 
 	//router.Use(middleware.AuthMiddleware)
 
-	fmt.Println("")
+	fmt.Println()
 
 	users.Routes(router, db)
 	products.Routes(router, db)
 	sellers.Routes(router, db)
 	billing.Routes(router, db)
 
-	router.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
+	router.Run(":8080") //nolint
 
 }
