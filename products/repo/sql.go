@@ -13,7 +13,7 @@ const (
 
 	deleteProduct = `DELETE FROM products WHERE product_id = $1;`
 
-	findAll = `SELECT product_id, product_name, description, designer, category, fit_notes, size, rrp, price, shipping_price, images, created_at, updated_at FROM products;`
+	find = `SELECT product_id, product_name, description, designer, category, fit_notes, size, rrp, price, shipping_price, images, created_at, updated_at FROM products WHERE true`
 
 	findAllByUserID = `SELECT product_id, product_name, description, designer, category, fit_notes, size, rrp, price, shipping_price, images, created_at, updated_at FROM products WHERE user_uid = $1;`
 )

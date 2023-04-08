@@ -17,7 +17,7 @@ type IProductRepository interface {
 	UpdateProduct(productID string, title string, description string, quantity int64, price int64) (product domain.Product, err error)
 	FindByID(productID string) (product domain.Product, err error)
 	DeleteProduct(productID string) (err error)
-	FindAll() (product []domain.Product, err error)
+	Find(categories []string, sizes []int64) (product []domain.Product, err error)
 	FindByUserID(userID string) (product []domain.Product, err error)
 }
 
@@ -166,11 +166,30 @@ func (repo *ProductRepository) DeleteProduct(ctx context.Context, uow uow.UnitOf
 	return nil
 }
 
-func (repo *ProductRepository) FindAll() (products []domain.Product, err error) {
+func (repo *ProductRepository) Find(categories []string, sizes []int64) (products []domain.Product, err error) {
 
 	products = []domain.Product{}
+	var parameters []interface{}
 
-	rows, err := repo.db.Query(findAll)
+	paramCount := 1
+
+	categoryClause := ""
+	if len(categories) > 0 {
+		categoryClause = fmt.Sprintf("AND category = ANY($%d)", paramCount)
+		parameters = append(parameters, pq.Array(categories))
+		paramCount++
+	}
+
+	sizeClause := ""
+	if len(sizes) > 0 {
+		sizeClause = fmt.Sprintf("AND size = ANY($%d)", paramCount)
+		parameters = append(parameters, pq.Array(sizes))
+		paramCount++
+	}
+
+	query := find + " " + categoryClause + " " + sizeClause + ";"
+
+	rows, err := repo.db.Query(query, parameters...)
 
 	if err != nil {
 		return []domain.Product{}, err
