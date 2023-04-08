@@ -53,7 +53,7 @@ func main() {
 	sellers.Routes(router, db)
 	billing.Routes(router, db)
 
-	router.Run(":8080")
-	//router.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
+	//router.Run(":8080")
+	router.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
 
 }
