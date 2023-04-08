@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -39,7 +40,7 @@ func CreateProduct(productID string, productName string, description string, pri
 		UpdatedAt:     utcNow,
 	}
 
-	fmt.println("")
+	fmt.Println("")
 
 	return product, nil
 }
