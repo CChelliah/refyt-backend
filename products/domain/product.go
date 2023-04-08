@@ -39,6 +39,8 @@ func CreateProduct(productID string, productName string, description string, pri
 		UpdatedAt:     utcNow,
 	}
 
+	fmt.println("")
+
 	return product, nil
 }
 
