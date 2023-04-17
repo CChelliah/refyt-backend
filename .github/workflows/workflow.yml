@@ -50,13 +50,13 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: ./
           target: /home/ubuntu/refyt
-      - name: SSH into server and restart app
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /home/ubuntu/refyt
-            make migrateup
-            ./refyt-backend
+      #- name: SSH into server and restart app
+      #  uses: appleboy/ssh-action@master
+      #  with:
+      #    host: ${{ secrets.EC2_HOST }}
+      #    username: ${{ secrets.EC2_USERNAME }}
+      #    key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #    script: |
+      #      cd /home/ubuntu/refyt
+      #      make migrateup
+      #      ./refyt-backend
