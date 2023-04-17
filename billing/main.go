@@ -17,5 +17,6 @@ func Routes(route *gin.Engine, db *libs.PostgresDatabase) {
 	billing := route.Group("/")
 	{
 		billing.POST("/checkout", routes.CreateCheckout(billingRepository, uowManager))
+		billing.POST("/webhook", routes.PaymentCompletedWebhook(billingRepository, uowManager))
 	}
 }

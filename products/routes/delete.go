@@ -11,11 +11,18 @@ import (
 )
 
 func Delete(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 
-		productID := ctx.Param("productId")
+		uid := c.GetString("uid")
 
-		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
+		if uid == "" {
+			c.JSON(http.StatusUnauthorized, "unauthorized user")
+			return
+		}
+
+		productID := c.Param("productId")
+
+		err := uowManager.Execute(c, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
 			err = stripeGateway.DeleteProduct(productID)
 
@@ -34,13 +41,13 @@ func Delete(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 
 		switch {
 		case errors.Is(err, repo.ErrProductNotFound):
-			ctx.JSON(http.StatusNotFound, err.Error())
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		case err != nil:
-			ctx.JSON(http.StatusInternalServerError, "internal server error")
+			c.JSON(http.StatusInternalServerError, "internal server error")
 			return
 		}
 
-		ctx.JSON(http.StatusNoContent, "")
+		c.JSON(http.StatusNoContent, "")
 	}
 }

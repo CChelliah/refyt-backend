@@ -3,7 +3,6 @@ package repo
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"refyt-backend/libs"
 	"refyt-backend/users/domain"
 )
@@ -37,11 +36,10 @@ func (repo *UserRepository) FindUserByID(uid string) (user domain.User, err erro
 		&user.Email,
 		&user.StripeCustomerID,
 		&user.CustomerNumber,
+		&user.StripeConnectID,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-
-	fmt.Println("test")
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
@@ -49,7 +47,6 @@ func (repo *UserRepository) FindUserByID(uid string) (user domain.User, err erro
 	case err != nil:
 		return user, err
 	}
-
 	return user, nil
 
 }

@@ -67,28 +67,6 @@ func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession
 		ShippingAddressCollection: &stripe.CheckoutSessionShippingAddressCollectionParams{
 			AllowedCountries: []*string{stripe.String("AU")},
 		},
-		ShippingOptions: []*stripe.CheckoutSessionShippingOptionParams{
-			&stripe.CheckoutSessionShippingOptionParams{
-				ShippingRateData: &stripe.CheckoutSessionShippingOptionShippingRateDataParams{
-					Type: stripe.String("fixed_amount"),
-					FixedAmount: &stripe.CheckoutSessionShippingOptionShippingRateDataFixedAmountParams{
-						Amount:   stripe.Int64(0),
-						Currency: stripe.String(string(stripe.CurrencyAUD)),
-					},
-					DisplayName: stripe.String("Pickup"),
-				},
-			},
-			&stripe.CheckoutSessionShippingOptionParams{
-				ShippingRateData: &stripe.CheckoutSessionShippingOptionShippingRateDataParams{
-					Type: stripe.String("fixed_amount"),
-					FixedAmount: &stripe.CheckoutSessionShippingOptionShippingRateDataFixedAmountParams{
-						Amount:   stripe.Int64(1500),
-						Currency: stripe.String(string(stripe.CurrencyAUD)),
-					},
-					DisplayName: stripe.String("Delivery"),
-				},
-			},
-		},
 	}
 
 	session, err = stripeClient.CheckoutSessions.New(params)

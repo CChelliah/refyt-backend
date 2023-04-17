@@ -27,17 +27,26 @@ type createProductPayload struct {
 }
 
 func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 		var payload createProductPayload
 
-		if err := ctx.ShouldBind(&payload); err != nil {
-			ctx.JSON(http.StatusBadRequest, err.Error())
+		uid := c.GetString("uid")
+
+		fmt.Printf("uid %s\n", uid)
+
+		if uid == "" {
+			c.JSON(http.StatusUnauthorized, "unauthorized user")
+			return
+		}
+
+		if err := c.ShouldBind(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
 
 		var product domain.Product
 
-		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
+		err := uowManager.Execute(c, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
 			stripeProduct, err := stripeGateway.NewProduct(payload.Name, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes)
 
@@ -50,8 +59,6 @@ func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 			if err != nil {
 				return err
 			}
-
-			fmt.Println("%s", imageUrls)
 
 			product, err = domain.CreateProduct(stripeProduct.ID, payload.Name, payload.Description, payload.Price, payload.RRP, payload.Designer, payload.FitNotes, payload.Category, payload.Size, payload.ShippingPrice)
 
@@ -83,10 +90,10 @@ func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 		})
 
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		ctx.JSON(200, product)
+		c.JSON(200, product)
 	}
 }

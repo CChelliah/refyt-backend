@@ -23,19 +23,27 @@ type updateProductPayload struct {
 }
 
 func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		var payload updateProductPayload
+	return func(c *gin.Context) {
 
-		if err := ctx.Bind(&payload); err != nil {
-			ctx.JSON(http.StatusBadRequest, err.Error())
+		uid := c.GetString("uid")
+
+		if uid == "" {
+			c.JSON(http.StatusUnauthorized, "unauthorized user")
 			return
 		}
 
-		productID := ctx.Param("productId")
+		var payload updateProductPayload
+
+		if err := c.Bind(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
+
+		productID := c.Param("productId")
 
 		var product domain.Product
 
-		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
+		err := uowManager.Execute(c, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
 			stripeProduct, err := stripeGateway.UpdateProduct(payload.ProductName, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes, productID)
 
@@ -54,13 +62,13 @@ func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 
 		switch {
 		case errors.Is(err, repo.ErrProductNotFound):
-			ctx.JSON(http.StatusNotFound, err.Error())
+			c.JSON(http.StatusNotFound, err.Error())
 			return
 		case err != nil:
-			ctx.JSON(http.StatusInternalServerError, "internal server error")
+			c.JSON(http.StatusInternalServerError, "internal server error")
 			return
 		}
 
-		ctx.JSON(200, product)
+		c.JSON(200, product)
 	}
 }

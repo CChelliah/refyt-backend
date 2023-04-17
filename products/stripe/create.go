@@ -26,12 +26,12 @@ func NewProduct(productName string, price int64, description string, rrp int64, 
 		Shippable: stripe.Bool(true),
 		DefaultPriceData: &stripe.ProductDefaultPriceDataParams{
 			Currency:   stripe.String("AUD"),
-			UnitAmount: stripe.Int64(price),
+			UnitAmount: stripe.Int64(price * 100),
 		},
 		Params: stripe.Params{
 			Metadata: map[string]string{
 				"description": description,
-				"rrp":         strconv.FormatInt(rrp, 16),
+				"rrp":         strconv.FormatInt(rrp*100, 16),
 				"designer":    designer,
 				"fitNotes":    fitNotes,
 			},

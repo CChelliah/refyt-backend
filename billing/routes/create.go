@@ -30,14 +30,19 @@ func CreateCheckout(billingRepo repo.BillingRepository, uowManager uow.UnitOfWor
 	return func(ctx *gin.Context) {
 		var payload createCheckoutPayload
 
+		uid := ctx.GetString("uid")
+
+		if uid == "" {
+			ctx.JSON(http.StatusUnauthorized, "unauthorized user")
+			return
+		}
+
 		if err := ctx.Bind(&payload); err != nil {
 			ctx.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
 
 		var session *stripe.CheckoutSession
-
-		customerID := "15xf5bidmhbPVSgMWHJSGMb32Vt1"
 
 		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
@@ -57,7 +62,7 @@ func CreateCheckout(billingRepo repo.BillingRepository, uowManager uow.UnitOfWor
 				return err
 			}
 
-			newBookings, err := createNewBookings(existingBookings, payload, customerID)
+			newBookings, err := createNewBookings(existingBookings, payload, uid)
 
 			if err != nil {
 				return err
@@ -70,6 +75,12 @@ func CreateCheckout(billingRepo repo.BillingRepository, uowManager uow.UnitOfWor
 			}
 
 			err = billingRepo.InsertBookings(ctx, uow, newBookings)
+
+			if err != nil {
+				return err
+			}
+
+			err = billingRepo.InsertCheckoutSessions(ctx, uow, session.ID, string(session.PaymentStatus), newBookings)
 
 			if err != nil {
 				return err

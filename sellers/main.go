@@ -11,8 +11,8 @@ func Routes(route *gin.Engine, db *libs.PostgresDatabase) {
 
 	sellerRepo := repo.NewSellerRepository(db)
 
-	user := route.Group("/sellers")
+	sellers := route.Group("/sellers")
 	{
-		user.POST("", routes.AddSellerAccount(&sellerRepo))
+		sellers.POST("", routes.AddSellerAccount(&sellerRepo))
 	}
 }

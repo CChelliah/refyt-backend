@@ -4,14 +4,19 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 	"refyt-backend/billing"
+	"refyt-backend/bookings"
 	"refyt-backend/config"
 	"refyt-backend/libs"
+	"refyt-backend/middleware"
 	"refyt-backend/products"
+	"refyt-backend/scheduler"
 	"refyt-backend/sellers"
 	"refyt-backend/users"
+	"time"
 )
 
 func main() {
@@ -44,7 +49,7 @@ func main() {
 		c.Set("firebaseAuth", firebaseAuth)
 	})
 
-	//router.Use(middleware.AuthMiddleware)
+	router.Use(middleware.AuthMiddleware)
 
 	fmt.Println()
 
@@ -52,8 +57,16 @@ func main() {
 	products.Routes(router, db)
 	sellers.Routes(router, db)
 	billing.Routes(router, db)
+	bookings.Routes(router, db)
 
-	//router.Run(":8080")
-	router.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
+	scheduler := scheduler.NewScheduler(db)
+
+	s := gocron.NewScheduler(time.UTC)
+
+	s.Every(1).Hour().Do(scheduler.ProcessScheduledTasks)
+	s.StartAsync()
+
+	router.Run(":8080")
+	//router.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
 
 }
