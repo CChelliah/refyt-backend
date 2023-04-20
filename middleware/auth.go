@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"firebase.google.com/go/v4/auth"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -27,6 +26,5 @@ func AuthMiddleware(c *gin.Context) {
 		return
 	}
 	c.Set("uid", token.UID)
-	fmt.Printf("xxxxx %s\n", token.UID)
 	c.Next()
 }

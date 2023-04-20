@@ -22,7 +22,6 @@ func AddSellerAccount(sellerRepo *repo.SellerRepository) gin.HandlerFunc {
 		switch {
 		case seller.ConnectAccountID != "":
 			c.JSON(http.StatusConflict, "seller account already exists")
-			return
 		case err != nil:
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return

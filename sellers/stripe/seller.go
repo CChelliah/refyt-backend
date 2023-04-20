@@ -56,6 +56,12 @@ func CreateAccountLink(seller domain.Seller) (accountLink *stripe.AccountLink, e
 		return nil, fmt.Errorf("unable to find stripe API Key")
 	}
 
+	frontendUrl, exists := os.LookupEnv("FRONT_END_URL")
+
+	if !exists {
+		panic("Unable to find front end url")
+	}
+
 	stripe.Key = stripeKey
 	var backends *stripe.Backends
 
@@ -63,8 +69,8 @@ func CreateAccountLink(seller domain.Seller) (accountLink *stripe.AccountLink, e
 
 	params := &stripe.AccountLinkParams{
 		Account:    stripe.String(seller.ConnectAccountID),
-		RefreshURL: stripe.String("http://localhost:3000/"),
-		ReturnURL:  stripe.String("http://localhost:3000/"),
+		RefreshURL: stripe.String(fmt.Sprintf("%s/seller", frontendUrl)),
+		ReturnURL:  stripe.String(fmt.Sprintf("%s/seller/", frontendUrl)),
 		Type:       stripe.String("account_onboarding"),
 	}
 
