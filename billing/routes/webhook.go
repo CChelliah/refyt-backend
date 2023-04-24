@@ -72,8 +72,6 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 			productBookings, err := billingRepo.GetBookingsWithProductInfo(ctx, bookingIds)
 
 			if err != nil {
-				fmt.Println("1")
-				fmt.Printf("%s\n", err.Error())
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
@@ -82,8 +80,6 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 
 			if err != nil {
 
-				fmt.Println("2")
-				fmt.Printf("%s\n", err.Error())
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
@@ -91,16 +87,12 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 			err = emailService.SendOrderConfirmationEmail(customer.Email, productBookings)
 
 			if err != nil {
-				fmt.Println("3")
-				fmt.Printf("%s\n", err.Error())
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
 		}
 
 		if err != nil {
-			fmt.Println("4")
-			fmt.Printf("%s\n", err.Error())
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
