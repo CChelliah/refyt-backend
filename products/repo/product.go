@@ -72,7 +72,6 @@ func (repo *ProductRepository) InsertProduct(ctx context.Context, uow uow.UnitOf
 	)
 
 	if err != nil {
-		fmt.Println(err.Error())
 		return domain.Product{}, err
 	}
 

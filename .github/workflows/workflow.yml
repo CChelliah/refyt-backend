@@ -33,6 +33,7 @@ jobs:
           envkey_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           envkey_DB_HOST: ${{ secrets.DB_HOST }}
           envkey_DB_PORT: ${{ secrets.DB_PORT }}
+          envkey_SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           file_name: .env
       - name: create service account key
         id: create-json
