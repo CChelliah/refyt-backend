@@ -37,8 +37,6 @@ func (s *Scheduler) ProcessOverdueItems() (err error) {
 
 func (s *Scheduler) ProcessScheduledTasks() (err error) {
 
-	fmt.Println("Processing scheduler tasks")
-
 	err = s.ProcessUpcomingBookings()
 
 	if err != nil {
