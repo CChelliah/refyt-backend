@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 	"refyt-backend/billing"
@@ -13,10 +12,8 @@ import (
 	"refyt-backend/libs"
 	"refyt-backend/middleware"
 	"refyt-backend/products"
-	"refyt-backend/scheduler"
 	"refyt-backend/sellers"
 	"refyt-backend/users"
-	"time"
 )
 
 func main() {
@@ -59,12 +56,12 @@ func main() {
 	billing.Routes(router, db)
 	bookings.Routes(router, db)
 
-	scheduler := scheduler.NewScheduler(db)
+	//scheduler := scheduler.NewScheduler(db)
 
-	s := gocron.NewScheduler(time.UTC)
+	// := gocron.NewScheduler(time.UTC)
 
-	s.Every(1).Hour().Do(scheduler.ProcessScheduledTasks)
-	s.StartAsync()
+	//s.Every(1).Hour().Do(scheduler.ProcessScheduledTasks)
+	//s.StartAsync()
 
 	//router.Run(":8080")
 	router.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
