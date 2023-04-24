@@ -3,12 +3,20 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 	"refyt-backend/billing/domain"
+	"refyt-backend/billing/model"
 	"refyt-backend/libs"
 	"refyt-backend/libs/uow"
 	"strings"
 	"time"
+)
+
+var (
+	ErrCustomerNotFound = errors.New("customer not found")
 )
 
 type IBillingRepository interface {
@@ -18,6 +26,7 @@ type IBillingRepository interface {
 	InsertCheckoutSessions(ctx context.Context, work uow.UnitOfWork, checkoutSessionID string, status string, bookings []domain.Booking) (err error)
 	UpdateCheckoutSessionStatus(ctx context.Context, uow uow.UnitOfWork, checkoutSessionID string) (bookingIds []string, err error)
 	UpdatePaidBookings(ctx context.Context, uow uow.UnitOfWork, bookingIds []string, shippingMethod string)
+	GetCustomerById(ctx *gin.Context, customerID string) (customer domain.Customer, err error)
 }
 
 type BillingRepository struct {
@@ -214,4 +223,74 @@ func (repo *BillingRepository) UpdateBookings(ctx context.Context, uow uow.UnitO
 	defer rows.Close()
 
 	return nil
+}
+
+func (repo *BillingRepository) GetCustomerById(ctx *gin.Context, customerID string) (customer domain.Customer, err error) {
+
+	err = repo.db.QueryRowContext(ctx, findCustomerByID, customerID).Scan(
+		&customer.Email,
+	)
+
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return customer, ErrCustomerNotFound
+	case err != nil:
+		return customer, err
+	}
+
+	return customer, nil
+
+}
+
+func (repo *BillingRepository) GetBookingsWithProductInfo(ctx *gin.Context, bookingIDs []string) (productBooking []model.ProductBooking, err error) {
+
+	inClause := fmt.Sprintf("{%s}", strings.Join(bookingIDs, ","))
+
+	rows, err := repo.db.QueryContext(ctx, findBookingsWithProductInfo, inClause)
+
+	if err != nil {
+		return productBooking, err
+	}
+
+	defer rows.Close()
+
+	productBookings := []model.ProductBooking{}
+
+	for rows.Next() {
+
+		var booking model.ProductBooking
+		var product model.Product
+
+		err = rows.Scan(
+			&booking.BookingID,
+			&booking.CustomerID,
+			&booking.StartDate,
+			&booking.EndDate,
+			&booking.Status,
+			&booking.ShippingMethod,
+			&product.ProductID,
+			&product.Name,
+			&product.Description,
+			&product.Designer,
+			&product.Category,
+			&product.FitNotes,
+			&product.Size,
+			&product.RRP,
+			&product.Price,
+			&product.ShippingPrice,
+			pq.Array(&product.ImageUrls),
+		)
+
+		if err != nil {
+			return productBooking, err
+		}
+
+		productBookings = append(productBookings, booking)
+	}
+
+	if err = rows.Err(); err != nil {
+		return productBookings, err
+	}
+
+	return productBookings, nil
 }

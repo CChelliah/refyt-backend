@@ -79,19 +79,12 @@ func (repo *ProductRepository) InsertProduct(ctx context.Context, uow uow.UnitOf
 	return product, nil
 }
 
-func (repo *ProductRepository) UpdateProduct(ctx context.Context, uow uow.UnitOfWork, productID string, title string, description string, quantity int64, price int64) (product domain.Product, err error) {
+func (repo *ProductRepository) UpdateProduct(ctx context.Context, uow uow.UnitOfWork, productID string, product domain.Product) (newProduct domain.Product, err error) {
 
 	utcNow := time.Now().UTC()
 
 	err = uow.GetTx().QueryRowContext(ctx, updateProduct,
-		productID,
-		title,
-		description,
-		quantity,
-		price,
-		utcNow,
-	).Scan(
-		&product.ProductID,
+		&productID,
 		&product.Name,
 		&product.Description,
 		&product.Designer,
@@ -102,8 +95,21 @@ func (repo *ProductRepository) UpdateProduct(ctx context.Context, uow uow.UnitOf
 		&product.Price,
 		&product.ShippingPrice,
 		pq.Array(&product.ImageUrls),
-		&product.CreatedAt,
-		&product.UpdatedAt,
+		utcNow,
+	).Scan(
+		&newProduct.ProductID,
+		&newProduct.Name,
+		&newProduct.Description,
+		&newProduct.Designer,
+		&newProduct.Category,
+		&newProduct.FitNotes,
+		&newProduct.Size,
+		&newProduct.RRP,
+		&newProduct.Price,
+		&newProduct.ShippingPrice,
+		pq.Array(&newProduct.ImageUrls),
+		&newProduct.UpdatedAt,
+		&newProduct.CreatedAt,
 	)
 
 	switch {
@@ -113,7 +119,7 @@ func (repo *ProductRepository) UpdateProduct(ctx context.Context, uow uow.UnitOf
 		return domain.Product{}, err
 	}
 
-	return product, nil
+	return newProduct, nil
 }
 
 func (repo *ProductRepository) FindByID(productID string) (product domain.Product, err error) {

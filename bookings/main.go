@@ -14,5 +14,6 @@ func Routes(route *gin.Engine, db *libs.PostgresDatabase) {
 	bookings := route.Group("/bookings")
 	{
 		bookings.GET("/:uid", routes.GetBookingsBySellerID(bookingRepo))
+		bookings.GET("/product/:productId", routes.GetBookingsByProductID(bookingRepo))
 	}
 }

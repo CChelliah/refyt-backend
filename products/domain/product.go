@@ -35,7 +35,7 @@ func CreateProduct(productID string, productName string, description string, pri
 		Size:          size,
 		RRP:           rrp * 100,
 		Price:         price * 100,
-		ShippingPrice: shippingPrice,
+		ShippingPrice: shippingPrice * 100,
 		CreatedAt:     utcNow,
 		UpdatedAt:     utcNow,
 	}

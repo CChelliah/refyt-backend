@@ -2,7 +2,6 @@ package routes
 
 import (
 	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"net/http"
@@ -32,8 +31,6 @@ func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 
 		uid := c.GetString("uid")
 
-		fmt.Printf("uid %s\n", uid)
-
 		if uid == "" {
 			c.JSON(http.StatusUnauthorized, "unauthorized user")
 			return
@@ -48,7 +45,7 @@ func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 
 		err := uowManager.Execute(c, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
-			stripeProduct, err := stripeGateway.NewProduct(payload.Name, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes)
+			stripeProduct, err := stripeGateway.NewProduct(payload.Name, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes, payload.ShippingPrice)
 
 			if err != nil {
 				return err
@@ -78,9 +75,7 @@ func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 				return err
 			}
 
-			fmt.Println("")
-
-			product, err = productRepo.InsertProduct(ctx, uow, product, "15xf5bidmhbPVSgMWHJSGMb32Vt1")
+			product, err = productRepo.InsertProduct(ctx, uow, product, uid)
 
 			if err != nil {
 				return err

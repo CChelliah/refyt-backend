@@ -2,14 +2,22 @@ package sendgrid
 
 import (
 	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"os"
+	"refyt-backend/billing/model"
 )
 
 type Sender struct {
 	client *sendgrid.Client
 }
 
-func NewSender() (emailService Sender) {
+const (
+	FromEmailAddress       = "hello@therefyt.com"
+	FromName               = "The Refyt"
+	WelcomeEmailTemplateID = "d-6fe09c3d409d49da97594b1f8e5f0e7c"
+)
+
+func NewSender() (emailService *Sender) {
 
 	sendGridKey, exists := os.LookupEnv("SENDGRID_API_KEY")
 
@@ -19,39 +27,80 @@ func NewSender() (emailService Sender) {
 
 	client := sendgrid.NewSendClient(sendGridKey)
 
-	return Sender{client: client}
+	return &Sender{client: client}
 }
 
-func (e *Sender) SendWelcomeEmail() (err error) {
+func (s *Sender) SendWelcomeEmail(toEmailAddress string) (err error) {
+
+	from := mail.NewEmail(FromName, FromEmailAddress)
+	to := mail.NewEmail("", toEmailAddress)
+	subject := ""
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+
+	email := mail.NewSingleEmail(from, subject, to, "", "") // empty body and plain text
+
+	email.SetTemplateID(WelcomeEmailTemplateID)
+
+	_, err = s.client.Send(email)
+
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func (s *Sender) SendOrderConfirmationEmail(toEmailAddress string, productBookings []model.ProductBooking) (err error) {
+
+	from := mail.NewEmail(FromName, FromEmailAddress)
+	to := mail.NewEmail("", toEmailAddress)
+	subject := ""
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+
+	p.SetDynamicTemplateData("productBookings", productBookings)
+
+	email := mail.NewSingleEmail(from, subject, to, "", "") // empty body and plain text
+
+	email.SetTemplateID(WelcomeEmailTemplateID)
+
+	_, err = s.client.Send(email)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (e *Sender) SendOrderConfirmationEmail() (err error) {
+func (s *Sender) SendShippedOrderEmail() (err error) {
 
 	return nil
 }
 
-func (e *Sender) SendShippedOrderEmail() (err error) {
+func (s *Sender) SendOrderPickUpEmail() (err error) {
+
+	return nil
+}
+func (s *Sender) SendShippingReturnReminder() (err error) {
 
 	return nil
 }
 
-func (e *Sender) SendOrderPickUpEmail() (err error) {
-
-	return nil
-}
-func (e *Sender) SendShippedReturnEmail() (err error) {
+func (s *Sender) SendPickupReturnReminder() (err error) {
 
 	return nil
 }
 
-func (e *Sender) SendPickupReturnEmail() (err error) {
+func (s *Sender) SendNoticeOfLateFeeEmail() error {
 
 	return nil
 }
 
-func (e *Sender) SendNoticeOfLateFeeEmail() error {
-
-	return nil
+func (s *Sender) SendPickupReturnEmail() (err error) {
+	//TODO implement me
+	panic("implement me")
 }

@@ -14,8 +14,8 @@ func AuthMiddleware(c *gin.Context) {
 
 	idToken := strings.TrimSpace(strings.Replace(authorizationToken, "Bearer", "", 1))
 	if idToken == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id token not available"})
-		c.Abort()
+		c.Set("uid", idToken)
+		c.Next()
 		return
 	}
 

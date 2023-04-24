@@ -4,22 +4,26 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"mime/multipart"
 	"net/http"
 	"refyt-backend/libs/uow"
 	"refyt-backend/products/domain"
 	"refyt-backend/products/repo"
+	"refyt-backend/products/s3"
 	stripeGateway "refyt-backend/products/stripe"
 )
 
 type updateProductPayload struct {
-	ProductName *string `json:"productName"`
-	Description *string `json:"description"`
-	Quantity    *int64  `json:"quantity"`
-	Price       *int64  `json:"price"`
-	Size        *int64  `json:"size"`
-	RRP         *int64  `json:"rrp"`
-	Designer    *string `json:"designer"`
-	FitNotes    *string `json:"fitNotes"`
+	Name          string                  `form:"name" binding:"required"`
+	Description   string                  `form:"description" binding:"required"`
+	Designer      string                  `form:"designer" binding:"required"`
+	Category      string                  `form:"category" binding:"required"`
+	FitNotes      string                  `form:"fitNotes" binding:"required"`
+	Size          int64                   `form:"size" binding:"required"`
+	RRP           int64                   `form:"rrp" binding:"required"`
+	Price         int64                   `form:"price" binding:"required"`
+	ShippingPrice int64                   `form:"shippingPrice" binding:"required"`
+	Images        []*multipart.FileHeader `form:"images"`
 }
 
 func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
@@ -45,14 +49,37 @@ func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 
 		err := uowManager.Execute(c, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
-			stripeProduct, err := stripeGateway.UpdateProduct(payload.ProductName, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes, productID)
+			stripeProduct, err := stripeGateway.UpdateProduct(payload.Name, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes, productID, payload.ShippingPrice)
 
 			if err != nil {
 				return err
 			}
 
-			product, err = productRepo.UpdateProduct(ctx, uow, stripeProduct.ID, stripeProduct.Name, stripeProduct.Description, 1, stripeProduct.DefaultPrice.UnitAmount)
+			product, err = domain.CreateProduct(stripeProduct.ID, payload.Name, payload.Description, payload.Price, payload.RRP, payload.Designer, payload.FitNotes, payload.Category, payload.Size, payload.ShippingPrice)
 
+			if err != nil {
+				return err
+			}
+
+			imageUrls, err := s3.UploadFile(stripeProduct.ID, payload.Images)
+
+			if err != nil {
+				return err
+			}
+
+			product.AddImageUrls(imageUrls)
+
+			if err != nil {
+				return err
+			}
+
+			err = stripeGateway.UpdateProductImages(stripeProduct.ID, imageUrls)
+
+			if err != nil {
+				return err
+			}
+
+			product, err = productRepo.UpdateProduct(ctx, uow, stripeProduct.ID, product)
 			if err != nil {
 				return err
 			}
@@ -65,7 +92,7 @@ func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 			c.JSON(http.StatusNotFound, err.Error())
 			return
 		case err != nil:
-			c.JSON(http.StatusInternalServerError, "internal server error")
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 

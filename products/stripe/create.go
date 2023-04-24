@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func NewProduct(productName string, price int64, description string, rrp int64, designer string, fitNotes string) (product *stripe.Product, err error) {
+func NewProduct(productName string, price int64, description string, rrp int64, designer string, fitNotes string, shippingPrice int64) (product *stripe.Product, err error) {
 
 	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
 
@@ -30,10 +30,11 @@ func NewProduct(productName string, price int64, description string, rrp int64, 
 		},
 		Params: stripe.Params{
 			Metadata: map[string]string{
-				"description": description,
-				"rrp":         strconv.FormatInt(rrp*100, 16),
-				"designer":    designer,
-				"fitNotes":    fitNotes,
+				"description":   description,
+				"rrp":           strconv.FormatInt(rrp*100, 16),
+				"designer":      designer,
+				"fitNotes":      fitNotes,
+				"shippingPrice": strconv.FormatInt(shippingPrice*100, 10),
 			},
 		},
 	}
@@ -67,15 +68,22 @@ func UpdateProductImages(productID string, imageUrls []string) (err error) {
 		images = append(images, &img)
 	}
 
+	fmt.Println("9")
+
 	params := &stripe.ProductParams{
 		Images: images,
 	}
+
+	fmt.Println("10")
+	fmt.Printf("ProductID %s\n", productID)
 
 	_, err = stripeClient.Products.Update(productID, params)
 
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("11")
 
 	return nil
 

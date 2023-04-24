@@ -1,8 +1,10 @@
 package email
 
+import "refyt-backend/billing/model"
+
 type EmailService interface {
-	SendWelcomeEmail() (err error)
-	SendOrderConfirmationEmail() (err error)
+	SendWelcomeEmail(toEmailAddress string) (err error)
+	SendOrderConfirmationEmail(toEmailAddress string, productBookings []model.ProductBooking) (err error)
 	SendNoticeOfLateFeeEmail() (err error)
 	SendShippedOrderEmail() (err error)
 	SendPickupReturnReminder() (err error)

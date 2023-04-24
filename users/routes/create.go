@@ -1,9 +1,12 @@
 package routes
 
 import (
+	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"refyt-backend/libs/email"
+	"refyt-backend/libs/uow"
 	"refyt-backend/users/domain"
 	"refyt-backend/users/repo"
 	stripeGateway "refyt-backend/users/stripe"
@@ -14,7 +17,7 @@ type createUserPayload struct {
 	Email string `json:"email" binding:"required"`
 }
 
-func Create(userRepo *repo.UserRepository) gin.HandlerFunc {
+func Create(userRepo repo.UserRepository, emailService email.EmailService, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var payload createUserPayload
 
@@ -34,20 +37,36 @@ func Create(userRepo *repo.UserRepository) gin.HandlerFunc {
 			return
 		}
 
-		user, err := domain.CreateUser(payload.Uid, payload.Email)
+		var newUser domain.User
 
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err.Error())
-		}
+		err = uowManager.Execute(c, func(c context.Context, uow uow.UnitOfWork) (err error) {
 
-		newStripeCustomer, err := stripeGateway.NewCustomer(payload.Email)
+			user, err := domain.CreateUser(payload.Uid, payload.Email)
 
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err.Error())
-			return
-		}
+			if err != nil {
+				return err
+			}
 
-		newUser, err := userRepo.CreateUser(user, newStripeCustomer.ID)
+			newStripeCustomer, err := stripeGateway.NewCustomer(payload.Email)
+
+			if err != nil {
+				return err
+			}
+
+			newUser, err = userRepo.CreateUser(user, newStripeCustomer.ID)
+
+			if err != nil {
+				return err
+			}
+
+			err = emailService.SendWelcomeEmail(user.Email)
+
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())

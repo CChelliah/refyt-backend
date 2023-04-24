@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func UpdateProduct(productName *string, price *int64, description *string, rrp *int64, designer *string, fitNotes *string, productID string) (product *stripe.Product, err error) {
+func UpdateProduct(name string, price int64, description string, rrp int64, designer string, fitNotes string, productID string, shippingPrice int64) (product *stripe.Product, err error) {
 
 	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
 
@@ -23,41 +23,25 @@ func UpdateProduct(productName *string, price *int64, description *string, rrp *
 
 	params := &stripe.ProductParams{}
 
-	if price != nil {
-		defaultPriceParams := &stripe.PriceParams{
-			UnitAmount: stripe.Int64(*price),
-			Currency:   stripe.String("AUD"),
-			Product:    stripe.String(productID),
-		}
-
-		defaultPrice, err := stripeClient.Prices.New(defaultPriceParams)
-
-		if err != nil {
-			return nil, err
-		}
-
-		params.DefaultPrice = stripe.String(defaultPrice.ID)
+	defaultPriceParams := &stripe.PriceParams{
+		UnitAmount: stripe.Int64(price * 100),
+		Currency:   stripe.String("AUD"),
+		Product:    stripe.String(productID),
 	}
 
-	if productName != nil {
-		params.Name = stripe.String(*productName)
+	defaultPrice, err := stripeClient.Prices.New(defaultPriceParams)
+
+	if err != nil {
+		return nil, err
 	}
 
-	if description != nil {
-		params.AddMetadata("description", *description)
-	}
-
-	if rrp != nil {
-		params.AddMetadata("rrp", strconv.FormatInt(*rrp, 10))
-	}
-
-	if designer != nil {
-		params.AddMetadata("designer", *designer)
-	}
-
-	if fitNotes != nil {
-		params.AddMetadata("fitNotes", *fitNotes)
-	}
+	params.DefaultPrice = stripe.String(defaultPrice.ID)
+	params.Name = stripe.String(name)
+	params.AddMetadata("description", description)
+	params.AddMetadata("rrp", strconv.FormatInt(rrp, 10))
+	params.AddMetadata("designer", designer)
+	params.AddMetadata("fitNotes", fitNotes)
+	params.AddMetadata("shippingPrice", strconv.FormatInt(shippingPrice*100, 10))
 
 	params.AddExpand("default_price")
 
