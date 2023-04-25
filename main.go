@@ -24,7 +24,7 @@ func main() {
 	err := godotenv.Load()
 
 	if err != nil {
-		panic("Err loading config")
+		panic(fmt.Sprintf("%s", err.Error()))
 	}
 
 	db, err := libs.NewDatabase()
