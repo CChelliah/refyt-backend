@@ -32,9 +32,10 @@ func CreateSellerAccount(seller domain.Seller) (account *stripe.Account, err err
 				Requested: stripe.Bool(true),
 			},
 		},
-		Country: stripe.String("AU"),
-		Email:   stripe.String(seller.Email),
-		Type:    stripe.String("custom"),
+		BusinessType: stripe.String("individual"),
+		Country:      stripe.String("AU"),
+		Email:        stripe.String(seller.Email),
+		Type:         stripe.String("custom"),
 	}
 
 	account, err = stripeClient.Accounts.New(params)
