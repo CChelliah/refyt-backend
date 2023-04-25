@@ -56,7 +56,7 @@ func CreateAccountLink(seller domain.Seller) (accountLink *stripe.AccountLink, e
 		return nil, fmt.Errorf("unable to find stripe API Key")
 	}
 
-	frontendUrl, exists := os.LookupEnv("FRONTEND_URL")
+	frontendUrl, exists := os.LookupEnv("FRONT_END_URL")
 
 	if !exists {
 		panic("Unable to find front end url")
