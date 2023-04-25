@@ -21,6 +21,5 @@ func Routes(route *gin.Engine, db *libs.PostgresDatabase) {
 	{
 		user.POST("", routes.Create(userRepo, emailService, uowManager))
 		user.GET("", routes.Get(&userRepo))
-		user.GET("/seller", routes.GetSeller(&userRepo))
 	}
 }
