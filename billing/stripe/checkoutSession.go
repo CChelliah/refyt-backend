@@ -51,8 +51,6 @@ func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession
 	for iter.Next() {
 		result := iter.Price()
 		if result.Active {
-			fmt.Println(result.Product.ID)
-			fmt.Println(result.ID)
 			productIDToPrice[result.Product.ID] = result.ID
 		}
 	}
