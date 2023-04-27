@@ -24,18 +24,21 @@ func CreateSellerAccount(seller domain.Seller) (account *stripe.Account, err err
 	stripeClient := client.New(stripeKey, backends)
 
 	params := &stripe.AccountParams{
+		BusinessType: stripe.String(string(stripe.AccountBusinessTypeIndividual)),
 		Capabilities: &stripe.AccountCapabilitiesParams{
 			CardPayments: &stripe.AccountCapabilitiesCardPaymentsParams{
 				Requested: stripe.Bool(true),
 			},
-			Transfers: &stripe.AccountCapabilitiesTransfersParams{
-				Requested: stripe.Bool(true),
-			},
+			AUBECSDebitPayments: &stripe.AccountCapabilitiesAUBECSDebitPaymentsParams{Requested: stripe.Bool(true)},
+			Transfers:           &stripe.AccountCapabilitiesTransfersParams{Requested: stripe.Bool(true)},
 		},
-		BusinessType: stripe.String("individual"),
-		Country:      stripe.String("AU"),
-		Email:        stripe.String(seller.Email),
-		Type:         stripe.String("custom"),
+		Country: stripe.String("AU"),
+		Email:   stripe.String(seller.Email),
+		Type:    stripe.String("express"),
+		BusinessProfile: &stripe.AccountBusinessProfileParams{
+			URL: stripe.String("https://refyt.com.au"),
+			MCC: stripe.String("7296"),
+		},
 	}
 
 	account, err = stripeClient.Accounts.New(params)
