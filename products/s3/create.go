@@ -59,7 +59,7 @@ func UploadFile(productID string, productImages []*multipart.FileHeader) (imageU
 			Key:    aws.String(key),
 		})
 
-		imageUrls = append(imageUrls, fmt.Sprintf("https://refyt.s3-ap-southeast-2.amazonaws.com/%s", key))
+		imageUrls = append(imageUrls, fmt.Sprintf("https://d23djj3zawzk3r.cloudfront.net/%s", key))
 
 		if err != nil {
 			return imageUrls, err
