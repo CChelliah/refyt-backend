@@ -61,7 +61,7 @@ func main() {
 	//s.Every(1).Hour().Do(scheduler.ProcessScheduledTasks)
 	//s.StartAsync()
 
-	router.Run(":8080")
-	//router.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
+	//router.Run(":8080")
+	router.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
 
 }
