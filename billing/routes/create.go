@@ -16,6 +16,7 @@ import (
 var (
 	ErrNoBookings          = errors.New("no bookings found")
 	ErrOverlappingBookings = errors.New("overlapping bookings")
+	ErrProductNotFound     = errors.New("product could not be found")
 )
 
 type createCheckoutPayload []checkoutItemPayload
@@ -50,10 +51,16 @@ func CreateCheckout(billingRepo repo.BillingRepository, uowManager uow.UnitOfWor
 				return ErrNoBookings
 			}
 
-			productIDs := []string{}
+			productIDs := make([]string, 0)
 
 			for _, booking := range payload {
 				productIDs = append(productIDs, booking.ProductID)
+			}
+
+			products, err := billingRepo.FindProductsByIDs(ctx, uow, productIDs)
+
+			if err != nil {
+				return err
 			}
 
 			existingBookings, err := billingRepo.GetExistingBookingsByProductID(ctx, uow, productIDs)
@@ -62,7 +69,7 @@ func CreateCheckout(billingRepo repo.BillingRepository, uowManager uow.UnitOfWor
 				return err
 			}
 
-			newBookings, err := createNewBookings(existingBookings, payload, uid)
+			newBookings, err := createNewBookings(existingBookings, payload, uid, products)
 
 			if err != nil {
 				return err
@@ -102,7 +109,7 @@ func CreateCheckout(billingRepo repo.BillingRepository, uowManager uow.UnitOfWor
 	}
 }
 
-func createNewBookings(existingBookings map[string][]domain.Booking, checkoutPayload createCheckoutPayload, customerID string) (newBookings []domain.Booking, err error) {
+func createNewBookings(existingBookings map[string][]domain.Booking, checkoutPayload createCheckoutPayload, customerID string, products map[string]domain.Product) (newBookings []domain.Booking, err error) {
 
 	newBookings = []domain.Booking{}
 
@@ -117,7 +124,13 @@ func createNewBookings(existingBookings map[string][]domain.Booking, checkoutPay
 			}
 		}
 
-		newBooking, err := domain.NewBooking(item.ProductID, item.StartDate, item.EndDate, customerID)
+		product, ok := products[item.ProductID]
+
+		if !ok {
+			return newBookings, ErrProductNotFound
+		}
+
+		newBooking, err := domain.NewBooking(item.ProductID, item.StartDate, item.EndDate, customerID, product.ShippingPrice)
 
 		if err != nil {
 			return newBookings, err

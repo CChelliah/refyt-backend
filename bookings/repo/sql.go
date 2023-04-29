@@ -7,5 +7,5 @@ const (
 								ORDER BY b.start_date DESC;`
 
 	findBookingsByProductID = `SELECT booking_id, product_id, customer_id, start_date, end_date, status, created_at, updated_at FROM
-								bookings WHERE product_id = $1;`
+								bookings WHERE product_id = $1 and status = $2;`
 )

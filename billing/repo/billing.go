@@ -27,6 +27,7 @@ type IBillingRepository interface {
 	UpdateCheckoutSessionStatus(ctx context.Context, uow uow.UnitOfWork, checkoutSessionID string) (bookingIds []string, err error)
 	UpdatePaidBookings(ctx context.Context, uow uow.UnitOfWork, bookingIds []string, shippingMethod string)
 	GetCustomerById(ctx *gin.Context, customerID string) (customer domain.Customer, err error)
+	FindProductsByIDs(ctx context.Context, uow uow.UnitOfWork, productIDs []string) (products map[string]domain.Product, err error)
 }
 
 type BillingRepository struct {
@@ -48,7 +49,7 @@ func (repo *BillingRepository) GetExistingBookingsByProductID(ctx context.Contex
 
 	bookings = map[string][]domain.Booking{}
 
-	rows, err := repo.db.QueryContext(ctx, findBookingsByProductID, inClause)
+	rows, err := repo.db.QueryContext(ctx, findBookingsByProductID, inClause, "Scheduled")
 
 	if err != nil {
 		return bookings, err
@@ -293,4 +294,42 @@ func (repo *BillingRepository) GetBookingsWithProductInfo(ctx *gin.Context, book
 	}
 
 	return productBookings, nil
+}
+
+func (repo *BillingRepository) FindProductsByIDs(ctx context.Context, uow uow.UnitOfWork, productIDs []string) (products map[string]domain.Product, err error) {
+
+	inClause := fmt.Sprintf("{%s}", strings.Join(productIDs, ","))
+
+	rows, err := repo.db.QueryContext(ctx, findProductsByIDs, inClause)
+
+	if err != nil {
+		return products, err
+	}
+
+	defer rows.Close()
+
+	products = make(map[string]domain.Product)
+
+	for rows.Next() {
+
+		var product domain.Product
+
+		err = rows.Scan(
+			&product.ProductID,
+			&product.ShippingPrice,
+		)
+
+		if err != nil {
+			return products, err
+		}
+
+		products[product.ProductID] = product
+	}
+
+	if err = rows.Err(); err != nil {
+		return products, err
+	}
+
+	return products, nil
+
 }

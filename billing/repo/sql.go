@@ -2,7 +2,7 @@ package repo
 
 const (
 	findBookingsByProductID = `SELECT booking_id, product_id, customer_id, start_date, end_date, status, created_at, updated_at
-							FROM bookings WHERE product_id = ANY($1::TEXT[])
+							FROM bookings WHERE product_id = ANY($1::TEXT[]) and status = $2
 							ORDER BY product_id, start_date DESC;`
 
 	insertBooking = `INSERT INTO bookings (booking_id, product_id, customer_id, start_date, end_date, status, created_at, updated_at)
@@ -26,4 +26,6 @@ const (
 									p.product_name, p.description, p.price, p.rrp, p.fit_notes, p.designer, p.category, p.shipping_price, p.size, p.images
 									FROM bookings b LEFT JOIN products p ON b.product_id = p.product_id 
 									WHERE b.booking_id = ANY($3::TEXT[]);`
+
+	findProductsByIDs = `SELECT p.product_id, p.shipping_price FROM products p WHERE p.product_id = ANY($1::TEXT[]);`
 )

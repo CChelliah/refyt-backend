@@ -68,7 +68,7 @@ func (repo *BookingRepo) FindBookingsBySellerID(ctx context.Context, sellerID st
 
 func (repo *BookingRepo) FindBookingByProductID(ctx context.Context, sellerID string) (bookings []domain.Booking, err error) {
 
-	rows, err := repo.db.QueryContext(ctx, findBookingsByProductID, sellerID)
+	rows, err := repo.db.QueryContext(ctx, findBookingsByProductID, sellerID, "Scheduled")
 
 	if err != nil {
 		return bookings, err

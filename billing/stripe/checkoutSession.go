@@ -57,6 +57,8 @@ func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession
 
 	lineItems := createLineItems(items, productIDToPrice)
 
+	totalShippingPrice := getTotalShippingPrice(items)
+
 	params := &stripe.CheckoutSessionParams{
 		LineItems:  lineItems,
 		Mode:       stripe.String("payment"),
@@ -80,7 +82,7 @@ func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession
 				ShippingRateData: &stripe.CheckoutSessionShippingOptionShippingRateDataParams{
 					Type: stripe.String("fixed_amount"),
 					FixedAmount: &stripe.CheckoutSessionShippingOptionShippingRateDataFixedAmountParams{
-						Amount:   stripe.Int64(1500),
+						Amount:   stripe.Int64(totalShippingPrice),
 						Currency: stripe.String(string(stripe.CurrencyAUD)),
 					},
 					DisplayName: stripe.String("Delivery"),
@@ -97,6 +99,14 @@ func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession
 
 	return session, nil
 
+}
+
+func getTotalShippingPrice(items []domain.Booking) (shippingPrice int64) {
+
+	for _, item := range items {
+		shippingPrice += item.ShippingPrice
+	}
+	return shippingPrice
 }
 
 func createLineItems(bookings []domain.Booking, productIDToPrice map[string]string) (lineItems []*stripe.CheckoutSessionLineItemParams) {
