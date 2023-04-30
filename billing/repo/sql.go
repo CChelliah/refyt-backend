@@ -20,12 +20,12 @@ const (
 
 	updateBookings = `UPDATE bookings SET status = $2, updated_at = $1, shipping_method = $4 WHERE booking_id = ANY($3::TEXT[]);`
 
-	findCustomerByID = `SELECT email FROM users WHERE user_id = $1`
+	findCustomerByID = `SELECT email FROM users WHERE uid = $1`
 
-	findBookingsWithProductInfo = `SELECT b.booking_id, b.product_id, b.customer_id, b.start_date, b.end_date, b.status, b.shipping_method,
+	findBookingsWithProductInfo = `SELECT b.booking_id, b.customer_id, b.start_date, b.end_date, b.status, b.shipping_method, p.product_id,
 									p.product_name, p.description, p.price, p.rrp, p.fit_notes, p.designer, p.category, p.shipping_price, p.size, p.images
 									FROM bookings b LEFT JOIN products p ON b.product_id = p.product_id 
-									WHERE b.booking_id = ANY($3::TEXT[]);`
+									WHERE b.booking_id = ANY($1::TEXT[]);`
 
 	findProductsByIDs = `SELECT p.product_id, p.shipping_price FROM products p WHERE p.product_id = ANY($1::TEXT[]);`
 )

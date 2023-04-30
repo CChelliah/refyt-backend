@@ -74,7 +74,7 @@ func CreateAccountLink(seller domain.Seller) (accountLink *stripe.AccountLink, e
 	params := &stripe.AccountLinkParams{
 		Account:    stripe.String(seller.ConnectAccountID),
 		RefreshURL: stripe.String(fmt.Sprintf("%s/seller", frontendUrl)),
-		ReturnURL:  stripe.String(fmt.Sprintf("%s/seller/", frontendUrl)),
+		ReturnURL:  stripe.String(fmt.Sprintf("%s/seller/redirect", frontendUrl)),
 		Type:       stripe.String("account_onboarding"),
 	}
 

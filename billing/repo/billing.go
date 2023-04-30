@@ -205,8 +205,6 @@ func (repo *BillingRepository) UpdateCheckoutSessionStatus(ctx context.Context, 
 	}
 
 	return bookingIds, nil
-
-	return bookingIds, nil
 }
 
 func (repo *BillingRepository) UpdateBookings(ctx context.Context, uow uow.UnitOfWork, bookingIds []string, shippingMethod string) (err error) {
@@ -247,6 +245,7 @@ func (repo *BillingRepository) GetBookingsWithProductInfo(ctx *gin.Context, book
 
 	inClause := fmt.Sprintf("{%s}", strings.Join(bookingIDs, ","))
 
+
 	rows, err := repo.db.QueryContext(ctx, findBookingsWithProductInfo, inClause)
 
 	if err != nil {
@@ -272,13 +271,13 @@ func (repo *BillingRepository) GetBookingsWithProductInfo(ctx *gin.Context, book
 			&product.ProductID,
 			&product.Name,
 			&product.Description,
+			&product.Price,
+			&product.RRP,
+			&product.FitNotes,
 			&product.Designer,
 			&product.Category,
-			&product.FitNotes,
-			&product.Size,
-			&product.RRP,
-			&product.Price,
 			&product.ShippingPrice,
+			&product.Size,
 			pq.Array(&product.ImageUrls),
 		)
 

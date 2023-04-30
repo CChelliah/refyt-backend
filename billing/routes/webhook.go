@@ -48,15 +48,19 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 					return err
 				}
 
+
 				bookingIds, err = billingRepo.UpdateCheckoutSessionStatus(ctx, uow, payload.Data.Object.Id)
 
 				if err != nil {
+					fmt.Printf("Error, %s\n", err.Error())
 					return err
 				}
+
 
 				err = billingRepo.UpdateBookings(ctx, uow, bookingIds, shippingRateName)
 
 				if err != nil {
+					fmt.Printf("Error, %s\n", err.Error())
 					return err
 				}
 
@@ -69,30 +73,41 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 
 		if err == nil {
 
+			fmt.Println("Getting bookings with product info")
+
 			productBookings, err := billingRepo.GetBookingsWithProductInfo(ctx, bookingIds)
 
 			if err != nil {
+				fmt.Printf("Error, %s\n", err.Error())
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
+
+			fmt.Println("Getting customer by id")
+			fmt.Printf("CustomerID %s\n", productBookings[0].CustomerID)
 
 			customer, err := billingRepo.GetCustomerById(ctx, productBookings[0].CustomerID)
 
 			if err != nil {
-
+				fmt.Printf("Error, %s\n", err.Error())
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
 
+			fmt.Println("Sending order confirmation email")
+			fmt.Printf("Email %s\n", customer.Email)
+
 			err = emailService.SendOrderConfirmationEmail(customer.Email, productBookings)
 
 			if err != nil {
+				fmt.Printf("Error, %s\n", err.Error())
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
 		}
 
 		if err != nil {
+			fmt.Printf("Error, %s\n", err.Error())
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}

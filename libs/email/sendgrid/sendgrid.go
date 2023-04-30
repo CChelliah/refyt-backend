@@ -1,6 +1,7 @@
 package sendgrid
 
 import (
+	"fmt"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"os"
@@ -12,9 +13,10 @@ type Sender struct {
 }
 
 const (
-	FromEmailAddress       = "hello@therefyt.com"
-	FromName               = "The Refyt"
-	WelcomeEmailTemplateID = "d-6fe09c3d409d49da97594b1f8e5f0e7c"
+	FromEmailAddress                 = "hello@therefyt.com"
+	FromName                         = "The Refyt"
+	WelcomeEmailTemplateID           = "d-6fe09c3d409d49da97594b1f8e5f0e7c"
+	OrderConfirmationEmailTemplateID = "d-360d50494313465fa79c8988a10058a2"
 )
 
 func NewSender() (emailService *Sender) {
@@ -65,11 +67,12 @@ func (s *Sender) SendOrderConfirmationEmail(toEmailAddress string, productBookin
 
 	email := mail.NewSingleEmail(from, subject, to, "", "") // empty body and plain text
 
-	email.SetTemplateID(WelcomeEmailTemplateID)
+	email.SetTemplateID(OrderConfirmationEmailTemplateID)
 
-	_, err = s.client.Send(email)
+	response, err := s.client.Send(email)
 
 	if err != nil {
+		fmt.Printf("Error %s\n", err.Error())
 		return err
 	}
 
