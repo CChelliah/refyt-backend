@@ -69,7 +69,7 @@ func (s *Sender) SendOrderConfirmationEmail(toEmailAddress string, productBookin
 
 	email.SetTemplateID(OrderConfirmationEmailTemplateID)
 
-	response, err := s.client.Send(email)
+	_, err := s.client.Send(email)
 
 	if err != nil {
 		fmt.Printf("Error %s\n", err.Error())
