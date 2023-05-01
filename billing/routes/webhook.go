@@ -34,6 +34,12 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 			return
 		}
 
+		if !(payload.Type == "checkout.session.completed" && payload.Data.Object.PaymentStatus != "Paid") {
+			ctx.JSON(http.StatusBadRequest, "Ignoring webhook event")
+			return
+
+		}
+
 		var bookingIds []string
 
 		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
@@ -48,14 +54,12 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 					return err
 				}
 
-
 				bookingIds, err = billingRepo.UpdateCheckoutSessionStatus(ctx, uow, payload.Data.Object.Id)
 
 				if err != nil {
 					fmt.Printf("Error, %s\n", err.Error())
 					return err
 				}
-
 
 				err = billingRepo.UpdateBookings(ctx, uow, bookingIds, shippingRateName)
 
@@ -73,7 +77,7 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 
 		if err == nil {
 
-			fmt.Println("Getting bookings with product info")
+			fmt.Printf("Getting bookings with product info bookingID %s\n", bookingIds[0])
 
 			productBookings, err := billingRepo.GetBookingsWithProductInfo(ctx, bookingIds)
 
@@ -82,9 +86,6 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
-
-			fmt.Println("Getting customer by id")
-			fmt.Printf("CustomerID %s\n", productBookings[0].CustomerID)
 
 			customer, err := billingRepo.GetCustomerById(ctx, productBookings[0].CustomerID)
 

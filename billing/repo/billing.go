@@ -43,13 +43,9 @@ func NewBillingRepository(env *libs.PostgresDatabase) (billingRepo BillingReposi
 	return billingRepo
 }
 
-func (repo *BillingRepository) GetExistingBookingsByProductID(ctx context.Context, uow uow.UnitOfWork, productIDs []string) (bookings map[string][]domain.Booking, err error) {
+func (repo *BillingRepository) GetExistingBookingsByProductID(ctx context.Context, uow uow.UnitOfWork, productID string) (bookings []domain.Booking, err error) {
 
-	inClause := fmt.Sprintf("{%s}", strings.Join(productIDs, ","))
-
-	bookings = map[string][]domain.Booking{}
-
-	rows, err := repo.db.QueryContext(ctx, findBookingsByProductID, inClause, "Scheduled")
+	rows, err := uow.GetTx().QueryContext(ctx, findBookingsByProductID, productID, "Scheduled")
 
 	if err != nil {
 		return bookings, err
@@ -57,7 +53,6 @@ func (repo *BillingRepository) GetExistingBookingsByProductID(ctx context.Contex
 
 	defer rows.Close()
 
-	var productID string
 	var booking domain.Booking
 
 	for rows.Next() {
@@ -81,10 +76,8 @@ func (repo *BillingRepository) GetExistingBookingsByProductID(ctx context.Contex
 			productID = booking.ProductID
 		}
 
-		bookings[productID] = append(bookings[productID], booking)
+		bookings = append(bookings, booking)
 	}
-
-	bookings[productID] = append(bookings[productID], booking)
 
 	if err = rows.Err(); err != nil {
 		return bookings, err
@@ -93,25 +86,23 @@ func (repo *BillingRepository) GetExistingBookingsByProductID(ctx context.Contex
 	return bookings, nil
 }
 
-func (repo *BillingRepository) InsertBookings(ctx context.Context, uow uow.UnitOfWork, bookings []domain.Booking) (err error) {
+func (repo *BillingRepository) InsertBookings(ctx context.Context, uow uow.UnitOfWork, booking domain.Booking) (err error) {
 
-	for _, booking := range bookings {
+	_, err = uow.GetTx().ExecContext(ctx, insertBooking,
+		&booking.BookingID,
+		&booking.ProductID,
+		&booking.CustomerID,
+		&booking.StartDate,
+		&booking.EndDate,
+		&booking.Status,
+		&booking.CreatedAt,
+		&booking.UpdatedAt,
+	)
 
-		_, err = uow.GetTx().ExecContext(ctx, insertBooking,
-			&booking.BookingID,
-			&booking.ProductID,
-			&booking.CustomerID,
-			&booking.StartDate,
-			&booking.EndDate,
-			&booking.Status,
-			&booking.CreatedAt,
-			&booking.UpdatedAt,
-		)
-
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
+
 	return nil
 }
 
@@ -156,25 +147,21 @@ func (repo *BillingRepository) FindBookingsBySellerID(ctx context.Context, selle
 	return bookings, nil
 }
 
-func (repo *BillingRepository) InsertCheckoutSessions(ctx context.Context, uow uow.UnitOfWork, checkoutSessionID string, status string, bookings []domain.Booking) (err error) {
+func (repo *BillingRepository) InsertCheckoutSessions(ctx context.Context, uow uow.UnitOfWork, checkoutSessionID string, status string, booking domain.Booking) (err error) {
 
 	utcNow := time.Now().UTC()
 
-	for _, booking := range bookings {
+	_, err = uow.GetTx().ExecContext(ctx, insertCheckoutSession,
+		&checkoutSessionID,
+		&status,
+		&booking.BookingID,
+		utcNow,
+		utcNow,
+	)
 
-		_, err = uow.GetTx().ExecContext(ctx, insertCheckoutSession,
-			&checkoutSessionID,
-			&status,
-			&booking.BookingID,
-			utcNow,
-			utcNow,
-		)
-
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
-	return nil
 
 	return nil
 }
@@ -245,7 +232,6 @@ func (repo *BillingRepository) GetBookingsWithProductInfo(ctx *gin.Context, book
 
 	inClause := fmt.Sprintf("{%s}", strings.Join(bookingIDs, ","))
 
-
 	rows, err := repo.db.QueryContext(ctx, findBookingsWithProductInfo, inClause)
 
 	if err != nil {
@@ -295,40 +281,14 @@ func (repo *BillingRepository) GetBookingsWithProductInfo(ctx *gin.Context, book
 	return productBookings, nil
 }
 
-func (repo *BillingRepository) FindProductsByIDs(ctx context.Context, uow uow.UnitOfWork, productIDs []string) (products map[string]domain.Product, err error) {
+func (repo *BillingRepository) FindProductByID(ctx context.Context, uow uow.UnitOfWork, productID string) (product domain.Product, err error) {
 
-	inClause := fmt.Sprintf("{%s}", strings.Join(productIDs, ","))
-
-	rows, err := repo.db.QueryContext(ctx, findProductsByIDs, inClause)
+	err = uow.GetTx().QueryRowContext(ctx, findProductsByIDs, productID).Scan(&product.ProductID,
+		&product.ShippingPrice)
 
 	if err != nil {
-		return products, err
+		return product, err
 	}
 
-	defer rows.Close()
-
-	products = make(map[string]domain.Product)
-
-	for rows.Next() {
-
-		var product domain.Product
-
-		err = rows.Scan(
-			&product.ProductID,
-			&product.ShippingPrice,
-		)
-
-		if err != nil {
-			return products, err
-		}
-
-		products[product.ProductID] = product
-	}
-
-	if err = rows.Err(); err != nil {
-		return products, err
-	}
-
-	return products, nil
-
+	return product, nil
 }

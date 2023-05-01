@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession, err error) {
+func NewCheckoutSession(item domain.Booking) (session *stripe.CheckoutSession, err error) {
 
 	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
 
@@ -30,14 +30,7 @@ func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession
 
 	var query strings.Builder
 
-	var size = len(items)
-
-	for i, booking := range items {
-		query.WriteString(fmt.Sprintf("product:'%s'", booking.ProductID))
-		if i != size-1 {
-			query.WriteString(" OR")
-		}
-	}
+	query.WriteString(fmt.Sprintf("product:'%s'", item.ProductID))
 
 	// Create a search criteria to find prices associated with the product IDs
 	searchParams := &stripe.PriceSearchParams{
@@ -55,9 +48,14 @@ func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession
 		}
 	}
 
-	lineItems := createLineItems(items, productIDToPrice)
+	lineItems := []*stripe.CheckoutSessionLineItemParams{}
 
-	totalShippingPrice := getTotalShippingPrice(items)
+	lineItem := stripe.CheckoutSessionLineItemParams{
+		Price:    stripe.String(productIDToPrice[item.ProductID]),
+		Quantity: stripe.Int64(1),
+	}
+
+	lineItems = append(lineItems, &lineItem)
 
 	params := &stripe.CheckoutSessionParams{
 		LineItems:  lineItems,
@@ -82,7 +80,7 @@ func NewCheckoutSession(items []domain.Booking) (session *stripe.CheckoutSession
 				ShippingRateData: &stripe.CheckoutSessionShippingOptionShippingRateDataParams{
 					Type: stripe.String("fixed_amount"),
 					FixedAmount: &stripe.CheckoutSessionShippingOptionShippingRateDataFixedAmountParams{
-						Amount:   stripe.Int64(totalShippingPrice),
+						Amount:   stripe.Int64(item.ShippingPrice),
 						Currency: stripe.String(string(stripe.CurrencyAUD)),
 					},
 					DisplayName: stripe.String("Delivery"),

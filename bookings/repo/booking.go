@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"refyt-backend/bookings/domain"
 	"refyt-backend/libs"
 )
@@ -26,6 +27,7 @@ func NewBookingRepo(env *libs.PostgresDatabase) (bookingRepo BookingRepo) {
 
 func (repo *BookingRepo) FindBookingsBySellerID(ctx context.Context, sellerID string) (bookings []domain.Booking, err error) {
 
+	fmt.Printf("%s", sellerID)
 	rows, err := repo.db.QueryContext(ctx, findBookingsBySellerID, sellerID)
 
 	if err != nil {
@@ -52,12 +54,16 @@ func (repo *BookingRepo) FindBookingsBySellerID(ctx context.Context, sellerID st
 			&booking.ProductName,
 		)
 
+		fmt.Printf("%s\n", booking.BookingID)
+
 		if err != nil {
 			return bookings, err
 		}
 
 		bookings = append(bookings, booking)
 	}
+
+	fmt.Printf("%d\n", len(bookings))
 
 	if err = rows.Err(); err != nil {
 		return bookings, err
