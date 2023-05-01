@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/lib/pq"
 	"refyt-backend/bookings/domain"
 	"refyt-backend/libs"
 )
@@ -52,6 +53,7 @@ func (repo *BookingRepo) FindBookingsBySellerID(ctx context.Context, sellerID st
 			&booking.CreatedAt,
 			&booking.UpdatedAt,
 			&booking.ProductName,
+			pq.Array(&booking.ImageUrls),
 		)
 
 		fmt.Printf("%s\n", booking.BookingID)

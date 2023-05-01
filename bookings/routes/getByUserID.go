@@ -18,6 +18,7 @@ func GetBookingsBySellerID(bookingRepo repo.BookingRepo) gin.HandlerFunc {
 
 		bookings, err := bookingRepo.FindBookingsBySellerID(c, uid)
 
+
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 		}

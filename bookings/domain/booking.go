@@ -14,4 +14,5 @@ type Booking struct {
 	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+	ImageUrls   []string  `json:"imageUrls"`
 }
