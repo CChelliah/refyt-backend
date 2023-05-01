@@ -74,14 +74,12 @@ func CreateCheckout(billingRepo repo.BillingRepository, uowManager uow.UnitOfWor
 				return err
 			}
 
-			fmt.Println("5")
 			err = billingRepo.InsertBookings(ctx, uow, newBooking)
 
 			if err != nil {
 				return err
 			}
 
-			fmt.Println("6")
 			err = billingRepo.InsertCheckoutSessions(ctx, uow, session.ID, string(session.PaymentStatus), newBooking)
 
 			if err != nil {
