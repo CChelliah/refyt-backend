@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"net/http"
+	"refyt-backend/libs/events"
 	"refyt-backend/libs/uow"
 	"refyt-backend/products/domain"
 	"refyt-backend/products/repo"
@@ -26,7 +27,7 @@ type updateProductPayload struct {
 	Images        []*multipart.FileHeader `form:"images"`
 }
 
-func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
+func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager, eventStreamer events.IEventStreamer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		uid := c.GetString("uid")
@@ -49,13 +50,13 @@ func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 
 		err := uowManager.Execute(c, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
-			stripeProduct, err := stripeGateway.UpdateProduct(payload.Name, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes, productID, payload.ShippingPrice)
+			product, err = productRepo.FindProductByID(productID)
 
 			if err != nil {
 				return err
 			}
 
-			product, err = domain.CreateProduct(stripeProduct.ID, payload.Name, payload.Description, payload.Price, payload.RRP, payload.Designer, payload.FitNotes, payload.Category, payload.Size, payload.ShippingPrice)
+			stripeProduct, err := stripeGateway.UpdateProduct(payload.Name, payload.Price, payload.Description, payload.RRP, payload.Designer, payload.FitNotes, productID, payload.ShippingPrice)
 
 			if err != nil {
 				return err
@@ -67,19 +68,32 @@ func Update(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 				return err
 			}
 
-			product.AddImageUrls(imageUrls)
-
-			if err != nil {
-				return err
-			}
-
 			err = stripeGateway.UpdateProductImages(stripeProduct.ID, imageUrls)
 
 			if err != nil {
 				return err
 			}
 
+			event := product.Update(&stripeProduct.ID, &payload.Name, &payload.Description, &payload.Price, &payload.RRP, &payload.Designer, &payload.FitNotes, &payload.Category, &payload.Size, &payload.ShippingPrice, &imageUrls)
+
+			if err != nil {
+				return err
+			}
+
 			product, err = productRepo.UpdateProduct(ctx, uow, stripeProduct.ID, product)
+
+			if err != nil {
+				return err
+			}
+
+			msg, err := events.ToEventPayload(event, string(events.ProductUpdatedEvent))
+
+			if err != nil {
+				return err
+			}
+
+			err = eventStreamer.Publish(string(events.ProductTopic), msg)
+
 			if err != nil {
 				return err
 			}

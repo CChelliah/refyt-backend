@@ -2,9 +2,11 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"net/http"
+	"refyt-backend/libs/events"
 	"refyt-backend/libs/uow"
 	"refyt-backend/products/domain"
 	"refyt-backend/products/repo"
@@ -25,11 +27,13 @@ type createProductPayload struct {
 	Images        []*multipart.FileHeader `form:"images"`
 }
 
-func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
+func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager, eventStreamer events.IEventStreamer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var payload createProductPayload
 
 		uid := c.GetString("uid")
+
+		fmt.Println("uid: ", uid)
 
 		if uid == "" {
 			c.JSON(http.StatusUnauthorized, "unauthorized user")
@@ -57,13 +61,13 @@ func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 				return err
 			}
 
-			product, err = domain.CreateProduct(stripeProduct.ID, payload.Name, payload.Description, payload.Price, payload.RRP, payload.Designer, payload.FitNotes, payload.Category, payload.Size, payload.ShippingPrice)
+			product, _, err = domain.CreateProduct(stripeProduct.ID, payload.Name, payload.Description, payload.Price, payload.RRP, payload.Designer, payload.FitNotes, payload.Category, payload.Size, payload.ShippingPrice)
 
 			if err != nil {
 				return err
 			}
 
-			product.AddImageUrls(imageUrls)
+			event := product.AddImageUrls(imageUrls)
 
 			if err != nil {
 				return err
@@ -76,6 +80,12 @@ func Create(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 			}
 
 			product, err = productRepo.InsertProduct(ctx, uow, product, uid)
+
+			if err != nil {
+				return err
+			}
+
+			err = eventStreamer.PublishEvent(events.ProductTopic, event)
 
 			if err != nil {
 				return err

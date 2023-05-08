@@ -12,7 +12,7 @@ func Get(productRepo repo.ProductRepository) gin.HandlerFunc {
 
 		productID := c.Param("productId")
 
-		product, err := productRepo.FindByID(productID)
+		product, err := productRepo.FindProductByID(productID)
 
 		switch {
 		case errors.Is(err, repo.ErrProductNotFound):

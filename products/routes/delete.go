@@ -5,12 +5,13 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"refyt-backend/libs/events"
 	"refyt-backend/libs/uow"
 	"refyt-backend/products/repo"
 	stripeGateway "refyt-backend/products/stripe"
 )
 
-func Delete(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
+func Delete(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager, eventStreamer events.IEventStreamer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		uid := c.GetString("uid")

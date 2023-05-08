@@ -5,10 +5,10 @@ import (
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/client"
 	"os"
-	"refyt-backend/sellers/domain"
+	"refyt-backend/customers/domain"
 )
 
-func CreateSellerAccount(seller domain.Seller) (account *stripe.Account, err error) {
+func CreateSellerAccount(customer domain.Customer) (account *stripe.Account, err error) {
 
 	fmt.Println("Creating seller account...")
 
@@ -33,7 +33,7 @@ func CreateSellerAccount(seller domain.Seller) (account *stripe.Account, err err
 			Transfers:           &stripe.AccountCapabilitiesTransfersParams{Requested: stripe.Bool(true)},
 		},
 		Country: stripe.String("AU"),
-		Email:   stripe.String(seller.Email),
+		Email:   stripe.String(customer.Email),
 		Type:    stripe.String("express"),
 		BusinessProfile: &stripe.AccountBusinessProfileParams{
 			URL: stripe.String("https://refyt.com.au"),
@@ -50,7 +50,7 @@ func CreateSellerAccount(seller domain.Seller) (account *stripe.Account, err err
 	return account, nil
 }
 
-func CreateAccountLink(seller domain.Seller) (accountLink *stripe.AccountLink, err error) {
+func CreateAccountLink(customer domain.Customer) (accountLink *stripe.AccountLink, err error) {
 
 	fmt.Println("Creating account link...")
 
@@ -72,7 +72,7 @@ func CreateAccountLink(seller domain.Seller) (accountLink *stripe.AccountLink, e
 	stripeClient := client.New(stripeKey, backends)
 
 	params := &stripe.AccountLinkParams{
-		Account:    stripe.String(seller.ConnectAccountID),
+		Account:    stripe.String(*customer.StripeConnectID),
 		RefreshURL: stripe.String(fmt.Sprintf("%s/seller", frontendUrl)),
 		ReturnURL:  stripe.String(fmt.Sprintf("%s/seller/redirect", frontendUrl)),
 		Type:       stripe.String("account_onboarding"),

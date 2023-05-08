@@ -121,7 +121,7 @@ func (repo *ProductRepository) UpdateProduct(ctx context.Context, uow uow.UnitOf
 	return newProduct, nil
 }
 
-func (repo *ProductRepository) FindByID(productID string) (product domain.Product, err error) {
+func (repo *ProductRepository) FindProductByID(productID string) (product domain.Product, err error) {
 
 	err = repo.db.QueryRow(findProductByID,
 		productID,
