@@ -7,10 +7,13 @@ import (
 	"github.com/lib/pq"
 	"refyt-backend/bookings/domain"
 	"refyt-backend/libs"
+	"refyt-backend/libs/uow"
 )
 
 type IBookingRepo interface {
 	FindBookingsBySellerID(ctx context.Context, sellerID string) (bookings []domain.Booking, err error)
+	FindBookingByProductID(ctx context.Context, productID string) (bookings []domain.Booking, err error)
+	InsertBooking(ctx context.Context, uow uow.UnitOfWork, booking domain.Booking) (err error)
 }
 
 type BookingRepo struct {
@@ -28,7 +31,6 @@ func NewBookingRepo(env *libs.PostgresDatabase) (bookingRepo BookingRepo) {
 
 func (repo *BookingRepo) FindBookingsBySellerID(ctx context.Context, sellerID string) (bookings []domain.Booking, err error) {
 
-	fmt.Printf("%s", sellerID)
 	rows, err := repo.db.QueryContext(ctx, findBookingsBySellerID, sellerID)
 
 	if err != nil {
@@ -74,9 +76,9 @@ func (repo *BookingRepo) FindBookingsBySellerID(ctx context.Context, sellerID st
 	return bookings, nil
 }
 
-func (repo *BookingRepo) FindBookingByProductID(ctx context.Context, sellerID string) (bookings []domain.Booking, err error) {
+func (repo *BookingRepo) FindBookingByProductID(ctx context.Context, productID string) (bookings []domain.Booking, err error) {
 
-	rows, err := repo.db.QueryContext(ctx, findBookingsByProductID, sellerID, "Scheduled")
+	rows, err := repo.db.QueryContext(ctx, findBookingsByProductID, productID, "Scheduled")
 
 	if err != nil {
 		return bookings, err
@@ -114,4 +116,24 @@ func (repo *BookingRepo) FindBookingByProductID(ctx context.Context, sellerID st
 
 	return bookings, nil
 
+}
+
+func (repo *BookingRepo) InsertBooking(ctx context.Context, uow uow.UnitOfWork, booking domain.Booking) (err error) {
+
+	_, err = uow.GetTx().ExecContext(ctx, insertBooking,
+		&booking.BookingID,
+		&booking.ProductID,
+		&booking.CustomerID,
+		&booking.StartDate,
+		&booking.EndDate,
+		&booking.Status,
+		&booking.CreatedAt,
+		&booking.UpdatedAt,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

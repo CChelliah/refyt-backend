@@ -5,7 +5,7 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"os"
-	"refyt-backend/billing/model"
+	"refyt-backend/libs/email/sendgrid/models"
 )
 
 type Sender struct {
@@ -54,7 +54,7 @@ func (s *Sender) SendWelcomeEmail(toEmailAddress string) (err error) {
 	return err
 }
 
-func (s *Sender) SendOrderConfirmationEmail(toEmailAddress string, productBookings []model.ProductBooking) (err error) {
+func (s *Sender) SendOrderConfirmationEmail(toEmailAddress string, productBookings []models.ProductBooking) (err error) {
 
 	from := mail.NewEmail(FromName, FromEmailAddress)
 	to := mail.NewEmail("", toEmailAddress)

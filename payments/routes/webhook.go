@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"refyt-backend/billing/repo"
-	stripeGateway "refyt-backend/billing/stripe"
 	"refyt-backend/libs/email"
 	"refyt-backend/libs/uow"
+	"refyt-backend/payments/repo"
+	stripeGateway "refyt-backend/payments/stripe"
 )
 
 type webhookPayload struct {
@@ -24,7 +24,7 @@ type webhookPayload struct {
 	Type string `json:"type"`
 }
 
-func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.UnitOfWorkManager, emailService email.EmailService) gin.HandlerFunc {
+func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWorkManager, emailService email.EmailService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 		var payload webhookPayload
@@ -54,17 +54,15 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 					return err
 				}
 
-				bookingIds, err = billingRepo.UpdateCheckoutSessionStatus(ctx, uow, payload.Data.Object.Id)
+				bookingIds, err = paymentRepo.UpdateCheckoutSessionStatus(ctx, uow, payload.Data.Object.Id)
 
 				if err != nil {
-					fmt.Printf("Error, %s\n", err.Error())
 					return err
 				}
 
-				err = billingRepo.UpdateBookings(ctx, uow, bookingIds, shippingRateName)
+				err = paymentRepo.UpdateBookings(ctx, uow, bookingIds, shippingRateName)
 
 				if err != nil {
-					fmt.Printf("Error, %s\n", err.Error())
 					return err
 				}
 
@@ -79,7 +77,7 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 
 			fmt.Printf("Getting bookings with product info bookingID %s\n", bookingIds[0])
 
-			productBookings, err := billingRepo.GetBookingsWithProductInfo(ctx, bookingIds)
+			productBookings, err := paymentRepo.GetBookingsWithProductInfo(ctx, bookingIds)
 
 			if err != nil {
 				fmt.Printf("Error, %s\n", err.Error())
@@ -87,7 +85,7 @@ func PaymentCompletedWebhook(billingRepo repo.BillingRepository, uowManager uow.
 				return
 			}
 
-			customer, err := billingRepo.GetCustomerById(ctx, productBookings[0].CustomerID)
+			customer, err := paymentRepo.GetCustomerById(ctx, productBookings[0].CustomerID)
 
 			if err != nil {
 				fmt.Printf("Error, %s\n", err.Error())

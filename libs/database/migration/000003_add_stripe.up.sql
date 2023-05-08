@@ -1,3 +1,0 @@
-ALTER TABLE users
-ADD COLUMN stripe_id VARCHAR(50) UNIQUE,
-ADD COLUMN stripe_connect_id VARCHAR(50) UNIQUE;

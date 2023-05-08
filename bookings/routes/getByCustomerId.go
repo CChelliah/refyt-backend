@@ -3,10 +3,10 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"refyt-backend/billing/repo"
+	"refyt-backend/bookings/repo"
 )
 
-func GetBookingsBySellerID(billingRepo repo.BillingRepository) gin.HandlerFunc {
+func GetBookingsBySellerID(bookingRepo repo.BookingRepo) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		uid := c.GetString("uid")
@@ -16,7 +16,7 @@ func GetBookingsBySellerID(billingRepo repo.BillingRepository) gin.HandlerFunc {
 			return
 		}
 
-		bookings, err := billingRepo.FindBookingsBySellerID(c, uid)
+		bookings, err := bookingRepo.FindBookingsBySellerID(c, uid)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
@@ -24,5 +24,4 @@ func GetBookingsBySellerID(billingRepo repo.BillingRepository) gin.HandlerFunc {
 
 		c.JSON(200, bookings)
 	}
-
 }

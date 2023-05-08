@@ -26,5 +26,6 @@ func Routes(route *gin.Engine, db *libs.PostgresDatabase, eventRouter *message.R
 	{
 		customers.POST("", routes.Create(customerRepo, emailService, uowManager, eventStreamer))
 		customers.POST("/connect", routes.AddConnectAccount(customerRepo, eventStreamer))
+		customers.GET("", routes.Get(customerRepo))
 	}
 }

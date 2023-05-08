@@ -5,7 +5,7 @@ import (
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/client"
 	"os"
-	"refyt-backend/billing/domain"
+	"refyt-backend/payments/domain"
 	"strings"
 )
 
@@ -66,7 +66,7 @@ func NewCheckoutSession(item domain.Booking) (session *stripe.CheckoutSession, e
 			AllowedCountries: []*string{stripe.String("AU")},
 		},
 		ShippingOptions: []*stripe.CheckoutSessionShippingOptionParams{
-			&stripe.CheckoutSessionShippingOptionParams{
+			{
 				ShippingRateData: &stripe.CheckoutSessionShippingOptionShippingRateDataParams{
 					Type: stripe.String("fixed_amount"),
 					FixedAmount: &stripe.CheckoutSessionShippingOptionShippingRateDataFixedAmountParams{
@@ -76,7 +76,7 @@ func NewCheckoutSession(item domain.Booking) (session *stripe.CheckoutSession, e
 					DisplayName: stripe.String("Pickup"),
 				},
 			},
-			&stripe.CheckoutSessionShippingOptionParams{
+			{
 				ShippingRateData: &stripe.CheckoutSessionShippingOptionShippingRateDataParams{
 					Type: stripe.String("fixed_amount"),
 					FixedAmount: &stripe.CheckoutSessionShippingOptionShippingRateDataFixedAmountParams{
@@ -97,28 +97,4 @@ func NewCheckoutSession(item domain.Booking) (session *stripe.CheckoutSession, e
 
 	return session, nil
 
-}
-
-func getTotalShippingPrice(items []domain.Booking) (shippingPrice int64) {
-
-	for _, item := range items {
-		shippingPrice += item.ShippingPrice
-	}
-	return shippingPrice
-}
-
-func createLineItems(bookings []domain.Booking, productIDToPrice map[string]string) (lineItems []*stripe.CheckoutSessionLineItemParams) {
-
-	lineItems = []*stripe.CheckoutSessionLineItemParams{}
-
-	for _, booking := range bookings {
-		lineItem := stripe.CheckoutSessionLineItemParams{
-			Price:    stripe.String(productIDToPrice[booking.ProductID]),
-			Quantity: stripe.Int64(1),
-		}
-
-		lineItems = append(lineItems, &lineItem)
-	}
-
-	return lineItems
 }

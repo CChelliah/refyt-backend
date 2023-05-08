@@ -9,15 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
-	"refyt-backend/billing"
 	"refyt-backend/bookings"
 	"refyt-backend/config"
 	"refyt-backend/customers"
 	"refyt-backend/libs"
 	"refyt-backend/libs/events"
 	"refyt-backend/middleware"
+	"refyt-backend/payments"
 	"refyt-backend/products"
-	"refyt-backend/users"
 )
 
 var (
@@ -32,7 +31,7 @@ func main() {
 	err := godotenv.Load()
 
 	if err != nil {
-		panic(fmt.Sprintf("%s", err.Error()))
+		panic(err.Error())
 	}
 
 	db, err := libs.NewDatabase()
@@ -66,15 +65,22 @@ func main() {
 	}
 
 	customers.Routes(httpRouter, db, eventRouter, eventStreamer)
-	users.Routes(httpRouter, db)
 	products.Routes(httpRouter, db, eventRouter, eventStreamer)
-	billing.Routes(httpRouter, db)
+	payments.Routes(httpRouter, db)
 	bookings.Routes(httpRouter, db)
 
 	ctx := context.Background()
-	go eventRouter.Run(ctx)
+	go func() {
+		err := eventRouter.Run(ctx)
+		if err != nil {
+			panic("event router error")
+		}
+	}()
 
-	httpRouter.Run(":8080")
+	err = httpRouter.Run(":8080")
+	if err != nil {
+		panic("error starting http router")
+	}
 
 	//httpRouter.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
 
