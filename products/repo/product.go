@@ -182,14 +182,14 @@ func (repo *ProductRepository) Find(categories []string, sizes []int64) (product
 	if len(categories) > 0 {
 		categoryClause = fmt.Sprintf("AND category = ANY($%d)", paramCount)
 		parameters = append(parameters, pq.Array(categories))
-		paramCount++
+		paramCount++ //nolint
 	}
 
 	sizeClause := ""
 	if len(sizes) > 0 {
 		sizeClause = fmt.Sprintf("AND size = ANY($%d)", paramCount)
 		parameters = append(parameters, pq.Array(sizes))
-		paramCount++
+		paramCount++ //nolint
 	}
 
 	query := find + " " + categoryClause + " " + sizeClause + ";"
