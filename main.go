@@ -85,5 +85,6 @@ func main() {
 
 	if err != nil {
 		panic("error starting http router")
+		fmt.Println("")
 	}
 }
