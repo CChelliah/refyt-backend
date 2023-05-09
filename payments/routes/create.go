@@ -7,6 +7,7 @@ import (
 	"github.com/stripe/stripe-go/v74"
 	"net/http"
 	"refyt-backend/libs/uow"
+	"refyt-backend/payments/domain"
 	"refyt-backend/payments/repo"
 	stripeGateway "refyt-backend/payments/stripe"
 )
@@ -26,7 +27,7 @@ func CreateCheckout(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWor
 			return
 		}
 
-		bookingID := ctx.Param("bookingID")
+		bookingID := ctx.Param("bookingId")
 
 		var session *stripe.CheckoutSession
 
@@ -44,7 +45,13 @@ func CreateCheckout(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWor
 				return err
 			}
 
-			err = paymentRepo.InsertCheckoutSessions(ctx, uow, session.ID, string(session.PaymentStatus), booking)
+			payment := domain.CreateNewPayment(session.ID, booking.BookingID)
+
+			if err != nil {
+				return err
+			}
+
+			err = paymentRepo.InsertPayment(ctx, uow, payment)
 
 			if err != nil {
 				return err

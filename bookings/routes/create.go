@@ -66,6 +66,6 @@ func Create(bookingRepo repo.BookingRepo, uowManager uow.UnitOfWorkManager) gin.
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 
-		ctx.JSON(200, createBookingResponsePayload{Booking: booking})
+		ctx.JSON(200, booking)
 	}
 }

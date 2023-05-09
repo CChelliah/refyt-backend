@@ -18,6 +18,6 @@ func Routes(route *gin.Engine, db *libs.PostgresDatabase) {
 	{
 		bookings.GET("/:uid", routes.GetBookingsBySellerID(bookingRepo))
 		bookings.GET("/product/:productId", routes.GetBookingsByProductID(bookingRepo))
-		bookings.POST("/", routes.Create(bookingRepo, uowManager))
+		bookings.POST("", routes.Create(bookingRepo, uowManager))
 	}
 }

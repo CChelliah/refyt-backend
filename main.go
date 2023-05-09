@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -69,19 +68,22 @@ func main() {
 	payments.Routes(httpRouter, db)
 	bookings.Routes(httpRouter, db)
 
-	ctx := context.Background()
-	go func() {
-		err := eventRouter.Run(ctx)
-		if err != nil {
-			panic("event router error")
-		}
-	}()
+	//ctx := context.Background()
+	//go func() {
+	//	err := eventRouter.Run(ctx)
+	//	if err != nil {
+	//		panic("event router error")
+	//	}
+	//}()
 
-	err = httpRouter.Run(":8080")
+	//err = httpRouter.Run(":8080")
+	//if err != nil {
+	//panic("error starting http router")
+	//}
+
+	err = httpRouter.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
+
 	if err != nil {
 		panic("error starting http router")
 	}
-
-	//httpRouter.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com.au/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com.au/privkey.pem") //nolint
-
 }

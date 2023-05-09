@@ -2,7 +2,6 @@ package routes
 
 import (
 	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"refyt-backend/libs/email"
@@ -37,16 +36,13 @@ func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.
 		if !(payload.Type == "checkout.session.completed" && payload.Data.Object.PaymentStatus != "Paid") {
 			ctx.JSON(http.StatusBadRequest, "Ignoring webhook event")
 			return
-
 		}
 
-		var bookingIds []string
+		var bookingID string
 
 		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
 			if payload.Type == "checkout.session.completed" && payload.Data.Object.PaymentStatus != "Paid" {
-
-				fmt.Println("Executing webhook")
 
 				shippingRateName, err := stripeGateway.GetShippingRate(payload.Data.Object.ShippingCost.ShippingRate)
 
@@ -54,13 +50,13 @@ func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.
 					return err
 				}
 
-				bookingIds, err = paymentRepo.UpdateCheckoutSessionStatus(ctx, uow, payload.Data.Object.Id)
+				bookingID, err = paymentRepo.UpdatePaymentStatus(ctx, uow, payload.Data.Object.Id)
 
 				if err != nil {
 					return err
 				}
 
-				err = paymentRepo.UpdateBookings(ctx, uow, bookingIds, shippingRateName)
+				err = paymentRepo.UpdateBooking(ctx, uow, bookingID, shippingRateName)
 
 				if err != nil {
 					return err
@@ -75,12 +71,9 @@ func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.
 
 		if err == nil {
 
-			fmt.Printf("Getting bookings with product info bookingID %s\n", bookingIds[0])
-
-			productBookings, err := paymentRepo.GetBookingsWithProductInfo(ctx, bookingIds)
+			productBookings, err := paymentRepo.GetBookingsWithProductInfo(ctx, bookingID)
 
 			if err != nil {
-				fmt.Printf("Error, %s\n", err.Error())
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
@@ -88,25 +81,19 @@ func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.
 			customer, err := paymentRepo.GetCustomerById(ctx, productBookings[0].CustomerID)
 
 			if err != nil {
-				fmt.Printf("Error, %s\n", err.Error())
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
 
-			fmt.Println("Sending order confirmation email")
-			fmt.Printf("Email %s\n", customer.Email)
-
 			err = emailService.SendOrderConfirmationEmail(customer.Email, productBookings)
 
 			if err != nil {
-				fmt.Printf("Error, %s\n", err.Error())
 				ctx.JSON(http.StatusInternalServerError, err.Error())
 				return
 			}
 		}
 
 		if err != nil {
-			fmt.Printf("Error, %s\n", err.Error())
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}

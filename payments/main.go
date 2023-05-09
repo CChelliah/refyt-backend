@@ -17,9 +17,9 @@ func Routes(route *gin.Engine, db *libs.PostgresDatabase) {
 
 	emailService := sendgrid.NewSender()
 
-	billing := route.Group("/")
+	payment := route.Group("/")
 	{
-		billing.POST("/checkout/:bookingId", routes.CreateCheckout(paymentRepository, uowManager))
-		billing.POST("/webhook", routes.PaymentCompletedWebhook(paymentRepository, uowManager, emailService))
+		payment.POST("/checkout/:bookingId", routes.CreateCheckout(paymentRepository, uowManager))
+		payment.POST("/webhook", routes.PaymentCompletedWebhook(paymentRepository, uowManager, emailService))
 	}
 }

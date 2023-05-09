@@ -20,6 +20,7 @@ CREATE TABLE booking_service.bookings (
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
     status VARCHAR(50) NOT NULL,
+    shipping_method VARCHAR(50),
     created_at TIMESTAMP default now() NOT NULL,
     updated_at TIMESTAMP default now() NOT NULL,
     PRIMARY KEY (booking_id)

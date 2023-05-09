@@ -81,7 +81,7 @@ func (repo *CustomerRepository) UpdateCustomer(customer domain.Customer) (domain
 
 	utcNow := time.Now().UTC()
 
-	err := repo.db.QueryRow(insertCustomer,
+	err := repo.db.QueryRow(updateCustomer,
 		&customer.StripeConnectID,
 		&utcNow,
 		&customer.CustomerID,
@@ -89,10 +89,10 @@ func (repo *CustomerRepository) UpdateCustomer(customer domain.Customer) (domain
 		&customer.CustomerID,
 		&customer.Email,
 		&customer.StripeCustomerID,
-		&customer.StripeConnectID,
 		&customer.CustomerNumber,
-		&customer.UpdatedAt,
+		&customer.StripeConnectID,
 		&customer.CreatedAt,
+		&customer.UpdatedAt,
 	)
 
 	switch {

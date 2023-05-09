@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"refyt-backend/customers/repo"
@@ -30,6 +31,8 @@ func AddConnectAccount(customerRepo repo.ICustomerRepository, eventStreamer even
 
 		account, err := stripeGateway.CreateSellerAccount(customer)
 
+		fmt.Println("account id %s", account.ID)
+
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
@@ -51,14 +54,7 @@ func AddConnectAccount(customerRepo repo.ICustomerRepository, eventStreamer even
 			return
 		}
 
-		msg, err := events.ToEventPayload(event, string(events.CustomerUpdatedEvent))
-
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		err = eventStreamer.Publish(string(events.CustomerTopic), msg)
+		err = eventStreamer.PublishEvent(events.CustomerTopic, event)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())

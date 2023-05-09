@@ -35,7 +35,7 @@ func CreateCustomer(uid string, email string) (customer Customer, event events.E
 
 func (c *Customer) AddAccount(account *stripe.Account) (event events.Event) {
 
-	c.StripeCustomerID = account.ID
+	c.StripeConnectID = &account.ID
 
 	event = c.toEvent(events.CustomerUpdatedEvent)
 

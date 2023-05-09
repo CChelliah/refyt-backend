@@ -11,7 +11,6 @@ import (
 	"refyt-backend/libs/email/sendgrid/models"
 	"refyt-backend/libs/uow"
 	"refyt-backend/payments/domain"
-	"strings"
 	"time"
 )
 
@@ -33,16 +32,15 @@ func NewPaymentRepository(env *libs.PostgresDatabase) (billingRepo PaymentReposi
 	return billingRepo
 }
 
-func (repo *PaymentRepository) InsertCheckoutSessions(ctx context.Context, uow uow.UnitOfWork, checkoutSessionID string, status string, booking domain.Booking) (err error) {
+func (repo *PaymentRepository) InsertPayment(ctx context.Context, uow uow.UnitOfWork, payment domain.Payment) (err error) {
 
-	utcNow := time.Now().UTC()
-
-	_, err = uow.GetTx().ExecContext(ctx, insertCheckoutSession,
-		&checkoutSessionID,
-		&status,
-		&booking.BookingID,
-		utcNow,
-		utcNow,
+	_, err = uow.GetTx().ExecContext(ctx, insertPayment,
+		&payment.PaymentID,
+		&payment.CheckoutSessionID,
+		&payment.Status,
+		&payment.BookingID,
+		&payment.CreatedAt,
+		&payment.UpdatedAt,
 	)
 
 	if err != nil {
@@ -52,52 +50,43 @@ func (repo *PaymentRepository) InsertCheckoutSessions(ctx context.Context, uow u
 	return nil
 }
 
-func (repo *PaymentRepository) UpdateCheckoutSessionStatus(ctx context.Context, uow uow.UnitOfWork, checkoutSessionID string) (bookingIds []string, err error) {
+func (repo *PaymentRepository) UpdatePaymentStatus(ctx context.Context, uow uow.UnitOfWork, checkoutSessionID string) (bookingID string, err error) {
 
+	fmt.Println("Payment Status 1")
 	utcNow := time.Now().UTC()
 
-	rows, err := uow.GetTx().QueryContext(ctx, updateCheckoutSessions, utcNow, checkoutSessionID)
+	err = uow.GetTx().QueryRowContext(ctx, updatePayment, utcNow, checkoutSessionID).Scan(&bookingID)
 
 	if err != nil {
-		return nil, err
+		return bookingID, err
 	}
 
-	defer rows.Close()
+	fmt.Println("Payment Status 2")
 
-	bookingIds = []string{}
-
-	for rows.Next() {
-
-		var bookingID string
-
-		if err := rows.Scan(&bookingID); err != nil {
-			return nil, err
-		}
-
-		bookingIds = append(bookingIds, bookingID)
-	}
-
-	return bookingIds, nil
+	return bookingID, nil
 }
 
-func (repo *PaymentRepository) UpdateBookings(ctx context.Context, uow uow.UnitOfWork, bookingIds []string, shippingMethod string) (err error) {
+func (repo *PaymentRepository) UpdateBooking(ctx context.Context, uow uow.UnitOfWork, bookingID string, shippingMethod string) (err error) {
+
+	fmt.Println("Update bookings 1")
 
 	utcNow := time.Now().UTC()
 
-	inClause := fmt.Sprintf("{%s}", strings.Join(bookingIds, ","))
+	fmt.Printf("InClause %s\n", shippingMethod)
 
-	rows, err := uow.GetTx().QueryContext(ctx, updateBookings, utcNow, "Scheduled", inClause, shippingMethod)
+	_, err = uow.GetTx().ExecContext(ctx, updateBooking, utcNow, "Scheduled", bookingID, shippingMethod)
 
 	if err != nil {
 		return nil
 	}
 
-	defer rows.Close()
-
+	fmt.Println("Update booking 2")
 	return nil
 }
 
 func (repo *PaymentRepository) GetCustomerById(ctx *gin.Context, customerID string) (customer domain.Customer, err error) {
+
+	fmt.Println("Customer ID 1")
 
 	err = repo.db.QueryRowContext(ctx, findCustomerByID, customerID).Scan(
 		&customer.Email,
@@ -110,15 +99,15 @@ func (repo *PaymentRepository) GetCustomerById(ctx *gin.Context, customerID stri
 		return customer, err
 	}
 
+	fmt.Println("Customer ID 2")
+
 	return customer, nil
 
 }
 
-func (repo *PaymentRepository) GetBookingsWithProductInfo(ctx *gin.Context, bookingIDs []string) (productBooking []models.ProductBooking, err error) {
+func (repo *PaymentRepository) GetBookingsWithProductInfo(ctx *gin.Context, bookingID string) (productBooking []models.ProductBooking, err error) {
 
-	inClause := fmt.Sprintf("{%s}", strings.Join(bookingIDs, ","))
-
-	rows, err := repo.db.QueryContext(ctx, findBookingsWithProductInfo, inClause)
+	rows, err := repo.db.QueryContext(ctx, findBookingsWithProductInfo, bookingID)
 
 	if err != nil {
 		return productBooking, err
