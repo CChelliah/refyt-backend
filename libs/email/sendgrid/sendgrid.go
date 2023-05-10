@@ -63,7 +63,7 @@ func (s *Sender) SendOrderConfirmationEmail(toEmailAddress string, productBookin
 	p := mail.NewPersonalization()
 	p.AddTos(to)
 
-	p.SetDynamicTemplateData("productBookings", productBookings)
+	//p.SetDynamicTemplateData("productBookings", productBookings)
 
 	email := mail.NewSingleEmail(from, subject, to, "", "") // empty body and plain text
 
