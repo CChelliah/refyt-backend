@@ -76,13 +76,13 @@ func main() {
 	//	}
 	//}()
 
-	/*err = httpRouter.Run(":8080")
-	if err != nil {
-		panic("error starting http router")
-	}
-	*/
-	err = httpRouter.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com/privkey.pem") //nolint
+	//err = httpRouter.Run(":8080")
+	//if err != nil {
+	//panic("error starting http router")
+	//}
 
+	err = httpRouter.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com/privkey.pem") //nolint
+	fmt.Println("")
 	if err != nil {
 		panic("error starting http router")
 		fmt.Println("")

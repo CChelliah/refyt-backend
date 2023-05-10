@@ -57,7 +57,7 @@ func (s *Sender) SendWelcomeEmail(toEmailAddress string) (err error) {
 func (s *Sender) SendOrderConfirmationEmail(toEmailAddress string, productBookings []models.ProductBooking) (err error) {
 
 	from := mail.NewEmail(FromName, FromEmailAddress)
-	to := mail.NewEmail("", toEmailAddress)
+	to := mail.NewEmail("", "cavinashchelliah@gmail.com")
 	subject := ""
 
 	p := mail.NewPersonalization()
