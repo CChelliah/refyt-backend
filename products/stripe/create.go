@@ -68,22 +68,15 @@ func UpdateProductImages(productID string, imageUrls []string) (err error) {
 		images = append(images, &img)
 	}
 
-	fmt.Println("9")
-
 	params := &stripe.ProductParams{
 		Images: images,
 	}
-
-	fmt.Println("10")
-	fmt.Printf("ProductID %s\n", productID)
 
 	_, err = stripeClient.Products.Update(productID, params)
 
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("11")
 
 	return nil
 

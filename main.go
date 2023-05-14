@@ -1,13 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"refyt-backend/bookings"
 	"refyt-backend/config"
 	"refyt-backend/customers"
@@ -19,11 +21,10 @@ import (
 )
 
 var (
-	logger = watermill.NewStdLogger(false, false)
+	eventLogger = watermill.NewStdLogger(false, false)
 )
 
 func main() {
-	fmt.Println("Starting trading card backend...")
 
 	firebaseAuth := config.SetupFirebase()
 
@@ -53,32 +54,54 @@ func main() {
 	})
 
 	httpRouter.Use(middleware.AuthMiddleware)
-	eventRouter, err := message.NewRouter(message.RouterConfig{}, logger)
+	eventRouter, err := message.NewRouter(message.RouterConfig{}, eventLogger)
 	if err != nil {
 		panic(err)
 	}
 
-	eventStreamer := events.NewEventStreamer(logger)
+	eventStreamer := events.NewEventStreamer(eventLogger)
 	if err != nil {
 		panic(err)
 	}
+
+	config := zap.Config{
+		Encoding:         "console",
+		Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
+		OutputPaths:      []string{"stderr"},
+		ErrorOutputPaths: []string{"stderr"},
+		EncoderConfig: zapcore.EncoderConfig{
+			MessageKey: "message",
+
+			LevelKey:    "level",
+			EncodeLevel: zapcore.CapitalColorLevelEncoder,
+
+			TimeKey:    "time",
+			EncodeTime: zapcore.ISO8601TimeEncoder,
+
+			CallerKey:    "caller",
+			EncodeCaller: zapcore.ShortCallerEncoder,
+		},
+	}
+
+	logger, _ := config.Build()
+	zap.ReplaceGlobals(logger)
 
 	customers.Routes(httpRouter, db, eventRouter, eventStreamer)
 	products.Routes(httpRouter, db, eventRouter, eventStreamer)
-	payments.Routes(httpRouter, db)
-	bookings.Routes(httpRouter, db)
+	payments.Routes(httpRouter, db, eventRouter, eventStreamer)
+	bookings.Routes(httpRouter, db, eventRouter, eventStreamer)
 
-	//ctx := context.Background()
-	//go func() {
-	//	err := eventRouter.Run(ctx)
-	//	if err != nil {
-	//		panic("event router error")
-	//	}
-	//}()
+	ctx := context.Background()
+	go func() {
+		err := eventRouter.Run(ctx)
+		if err != nil {
+			panic("event router error")
+		}
+	}()
 
 	//err = httpRouter.Run(":8080")
 	//if err != nil {
-	//panic("error starting http router")
+	//	panic("error starting http router")
 	//}
 
 	err = httpRouter.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com/privkey.pem") //nolint

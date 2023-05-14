@@ -3,7 +3,9 @@ package routes
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"refyt-backend/customers/domain"
 	"refyt-backend/customers/repo"
@@ -22,7 +24,10 @@ func Create(customerRepo repo.ICustomerRepository, emailService email.EmailServi
 	return func(c *gin.Context) {
 		var payload createCustomerPayload
 
+		zap.L().Info("Processing customer create.")
+
 		if err := c.Bind(&payload); err != nil {
+			zap.L().Error(fmt.Sprintf("Error binding payload %s", err.Error()))
 			c.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
@@ -31,9 +36,12 @@ func Create(customerRepo repo.ICustomerRepository, emailService email.EmailServi
 
 		switch {
 		case existingCustomer.CustomerID != "":
-			c.JSON(http.StatusConflict, "customer already exists")
+			err = fmt.Errorf("customer already exists, %s", err.Error())
+			zap.L().Error(err.Error())
+			c.JSON(http.StatusConflict, err.Error())
 			return
 		case err != nil && !errors.Is(err, repo.ErrCustomerNotFound):
+			zap.L().Error(err.Error())
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -45,37 +53,45 @@ func Create(customerRepo repo.ICustomerRepository, emailService email.EmailServi
 			customer, event, err := domain.CreateCustomer(payload.Uid, payload.Email)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
 			newStripeCustomer, err := stripeGateway.NewCustomer(payload.Email)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
 			newCustomer, err = customerRepo.InsertCustomer(customer, newStripeCustomer.ID)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
 			err = emailService.SendWelcomeEmail(customer.Email)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
 			err = eventStreamer.PublishEvent(events.CustomerTopic, event)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
+
+			zap.L().Info(fmt.Sprintf("Sucessfully created customer %s", customer.CustomerID))
 
 			return nil
 		})
 
 		if err != nil {
+			zap.L().Error(err.Error())
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}

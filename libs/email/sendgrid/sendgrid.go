@@ -1,7 +1,6 @@
 package sendgrid
 
 import (
-	"fmt"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"os"
@@ -54,30 +53,31 @@ func (s *Sender) SendWelcomeEmail(toEmailAddress string) (err error) {
 	return err
 }
 
-func (s *Sender) SendOrderConfirmationEmail(toEmailAddress string, productBookings []models.ProductBooking) (err error) {
+func (s *Sender) SendOrderConfirmationEmail(toEmailAddress string, productBookings models.ProductBooking) (err error) {
 
-	from := mail.NewEmail(FromName, FromEmailAddress)
-	to := mail.NewEmail("", "cavinashchelliah@gmail.com")
-	subject := ""
+	m := mail.NewV3Mail()
+
+	e := mail.NewEmail(FromName, FromEmailAddress)
+	m.SetFrom(e)
+
+	m.SetTemplateID(OrderConfirmationEmailTemplateID)
 
 	p := mail.NewPersonalization()
-	p.AddTos(to)
+	tos := []*mail.Email{
+		mail.NewEmail("", toEmailAddress),
+	}
+	p.AddTos(tos...)
 
-	//p.SetDynamicTemplateData("productBookings", productBookings)
+	p.SetDynamicTemplateData("booking", productBookings)
 
-	email := mail.NewSingleEmail(from, subject, to, "", "") // empty body and plain text
+	m.AddPersonalizations(p)
 
-	email.SetTemplateID(OrderConfirmationEmailTemplateID)
-
-	res, err := s.client.Send(email)
+	_, err = s.client.Send(m)
 
 	if err != nil {
-		fmt.Printf("Error %s\n", res.Body)
-		fmt.Printf("Error %d\n", res.StatusCode)
-		fmt.Printf("Error %s\n", err.Error())
 		return err
 	}
-	fmt.Printf("Order confirmation email sent with code %d %s\n", res.StatusCode, res.Body)
+
 	return nil
 }
 

@@ -10,8 +10,6 @@ import (
 
 func CreateSellerAccount(customer domain.Customer) (account *stripe.Account, err error) {
 
-	fmt.Println("Creating seller account...")
-
 	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
 
 	if !exists {
@@ -51,8 +49,6 @@ func CreateSellerAccount(customer domain.Customer) (account *stripe.Account, err
 }
 
 func CreateAccountLink(customer domain.Customer) (accountLink *stripe.AccountLink, err error) {
-
-	fmt.Println("Creating account link...")
 
 	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
 

@@ -2,12 +2,13 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
-	"refyt-backend/libs/email"
+	"refyt-backend/libs/events"
 	"refyt-backend/libs/uow"
 	"refyt-backend/payments/repo"
-	stripeGateway "refyt-backend/payments/stripe"
 )
 
 type webhookPayload struct {
@@ -23,17 +24,19 @@ type webhookPayload struct {
 	Type string `json:"type"`
 }
 
-func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWorkManager, emailService email.EmailService) gin.HandlerFunc {
+func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWorkManager, eventStreamer events.IEventStreamer) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 		var payload webhookPayload
 
 		if err := ctx.Bind(&payload); err != nil {
+			zap.L().Error(err.Error())
 			ctx.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
 
 		if !(payload.Type == "checkout.session.completed" && payload.Data.Object.PaymentStatus != "Paid") {
+			zap.L().Error(fmt.Sprintf("Ignoring webhook event for %s", payload.Type))
 			ctx.JSON(http.StatusBadRequest, "Ignoring webhook event")
 			return
 		}
@@ -44,21 +47,27 @@ func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.
 
 			if payload.Type == "checkout.session.completed" && payload.Data.Object.PaymentStatus != "Paid" {
 
-				shippingRateName, err := stripeGateway.GetShippingRate(payload.Data.Object.ShippingCost.ShippingRate)
+				zap.L().Error(fmt.Sprintf("ID is %s", payload.Data.Object.Id))
+				payment, err := paymentRepo.FindPaymentByCheckoutSessionID(ctx, uow, payload.Data.Object.Id)
 
 				if err != nil {
+					zap.L().Error(err.Error())
 					return err
 				}
 
-				bookingID, err = paymentRepo.UpdatePaymentStatus(ctx, uow, payload.Data.Object.Id)
+				event := payment.SetPaymentPaid()
+
+				err = paymentRepo.Store(ctx, uow, payment)
 
 				if err != nil {
+					zap.L().Error(err.Error())
 					return err
 				}
 
-				err = paymentRepo.UpdateBooking(ctx, uow, bookingID, shippingRateName)
+				err = eventStreamer.PublishEvent(events.PaymentTopic, event)
 
 				if err != nil {
+					zap.L().Error(err.Error())
 					return err
 				}
 
@@ -69,34 +78,13 @@ func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.
 			return nil
 		})
 
-		if err == nil {
-
-			productBookings, err := paymentRepo.GetBookingsWithProductInfo(ctx, bookingID)
-
-			if err != nil {
-				ctx.JSON(http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			customer, err := paymentRepo.GetCustomerById(ctx, productBookings[0].CustomerID)
-
-			if err != nil {
-				ctx.JSON(http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			err = emailService.SendOrderConfirmationEmail(customer.Email, productBookings)
-
-			if err != nil {
-				ctx.JSON(http.StatusInternalServerError, err.Error())
-				return
-			}
-		}
-
 		if err != nil {
+			zap.L().Error(err.Error())
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
+
+		zap.L().Info(fmt.Sprintf("Payment successfully completed for booking %s", bookingID))
 
 		ctx.JSON(http.StatusOK, "Payment completed")
 	}

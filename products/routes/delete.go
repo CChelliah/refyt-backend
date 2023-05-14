@@ -3,7 +3,9 @@ package routes
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"refyt-backend/libs/events"
 	"refyt-backend/libs/uow"
@@ -17,7 +19,10 @@ func Delete(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 		uid := c.GetString("uid")
 
 		if uid == "" {
-			c.JSON(http.StatusUnauthorized, "unauthorized user")
+			err := fmt.Errorf("unauthorised user")
+
+			zap.L().Error(err.Error())
+			c.JSON(http.StatusUnauthorized, err.Error())
 			return
 		}
 
@@ -28,12 +33,14 @@ func Delete(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 			err = stripeGateway.DeleteProduct(productID)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
 			err = productRepo.DeleteProduct(ctx, uow, productID)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
@@ -42,12 +49,16 @@ func Delete(productRepo repo.ProductRepository, uowManager uow.UnitOfWorkManager
 
 		switch {
 		case errors.Is(err, repo.ErrProductNotFound):
+			zap.L().Error(err.Error())
 			c.JSON(http.StatusNotFound, err.Error())
 			return
 		case err != nil:
+			zap.L().Error(err.Error())
 			c.JSON(http.StatusInternalServerError, "internal server error")
 			return
 		}
+
+		zap.L().Info(fmt.Sprintf("Successfully deleted product with id %s.", productID))
 
 		c.JSON(http.StatusNoContent, "")
 	}

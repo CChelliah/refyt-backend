@@ -3,9 +3,12 @@ package routes
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v74"
+	"go.uber.org/zap"
 	"net/http"
+	"refyt-backend/libs/events"
 	"refyt-backend/libs/uow"
 	"refyt-backend/payments/domain"
 	"refyt-backend/payments/repo"
@@ -17,12 +20,15 @@ var (
 	ErrOverlappingBookings = errors.New("overlapping bookings")
 )
 
-func CreateCheckout(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
+func CreateCheckout(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWorkManager, eventStreamer events.IEventStreamer) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 		uid := ctx.GetString("uid")
 
 		if uid == "" {
+			err := fmt.Errorf("unauthorized user")
+
+			zap.L().Error(err.Error())
 			ctx.JSON(http.StatusUnauthorized, "unauthorized user")
 			return
 		}
@@ -36,24 +42,35 @@ func CreateCheckout(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWor
 			booking, err := paymentRepo.FindBookingByID(ctx, bookingID)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
 			session, err = stripeGateway.NewCheckoutSession(booking)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
-			payment := domain.CreateNewPayment(session.ID, booking.BookingID)
+			payment, event := domain.CreateNewPayment(session.ID, booking.BookingID)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
-			err = paymentRepo.InsertPayment(ctx, uow, payment)
+			err = paymentRepo.Store(ctx, uow, payment)
 
 			if err != nil {
+				zap.L().Error(err.Error())
+				return err
+			}
+
+			err = eventStreamer.PublishEvent(events.PaymentTopic, event)
+
+			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
@@ -61,6 +78,7 @@ func CreateCheckout(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWor
 		})
 
 		if err != nil {
+			zap.L().Error(err.Error())
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}

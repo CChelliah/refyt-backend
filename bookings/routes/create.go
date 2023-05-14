@@ -2,10 +2,13 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"refyt-backend/bookings/domain"
 	"refyt-backend/bookings/repo"
+	"refyt-backend/libs/events"
 	"refyt-backend/libs/uow"
 	"time"
 )
@@ -20,7 +23,7 @@ type createBookingResponsePayload struct {
 	Booking domain.Booking `json:"booking"`
 }
 
-func Create(bookingRepo repo.BookingRepo, uowManager uow.UnitOfWorkManager) gin.HandlerFunc {
+func Create(bookingRepo repo.BookingRepo, uowManager uow.UnitOfWorkManager, eventStreamer events.IEventStreamer) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 		var payload createBookingPayload
@@ -28,34 +31,52 @@ func Create(bookingRepo repo.BookingRepo, uowManager uow.UnitOfWorkManager) gin.
 		uid := ctx.GetString("uid")
 
 		if uid == "" {
-			ctx.JSON(http.StatusUnauthorized, "unauthorized user")
+			err := fmt.Errorf("unauthorized user")
+			zap.L().Error(err.Error())
+			ctx.JSON(http.StatusUnauthorized, err.Error())
 			return
 		}
 
 		if err := ctx.Bind(&payload); err != nil {
+			zap.L().Error(err.Error())
 			ctx.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
 
 		var booking domain.Booking
+		var event events.Event
+
+		zap.L().Info("Creating booking.")
 
 		err := uowManager.Execute(ctx, func(ctx context.Context, uow uow.UnitOfWork) (err error) {
 
 			existingBookings, err := bookingRepo.FindBookingByProductID(ctx, payload.ProductID)
 
+			zap.L().Info(fmt.Sprintf("Found %d existing bookings for product id %s", len(existingBookings), payload.ProductID))
+
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
-			booking, err = domain.CreateNewBooking(existingBookings, payload.ProductID, payload.StartDate, payload.EndDate, uid)
+			booking, event, err = domain.CreateNewBooking(existingBookings, payload.ProductID, payload.StartDate, payload.EndDate, uid)
 
 			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
-			err = bookingRepo.InsertBooking(ctx, uow, booking)
+			err = bookingRepo.Store(ctx, uow, booking)
 
 			if err != nil {
+				zap.L().Error(err.Error())
+				return err
+			}
+
+			err = eventStreamer.PublishEvent(events.BookingTopic, event)
+
+			if err != nil {
+				zap.L().Error(err.Error())
 				return err
 			}
 
@@ -63,8 +84,11 @@ func Create(bookingRepo repo.BookingRepo, uowManager uow.UnitOfWorkManager) gin.
 		})
 
 		if err != nil {
+			zap.L().Error(err.Error())
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
+
+		zap.L().Info(fmt.Sprintf("Successfully created booking %s.", booking.BookingID))
 
 		ctx.JSON(200, booking)
 	}

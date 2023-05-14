@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"refyt-backend/products/repo"
 )
@@ -21,6 +22,7 @@ func GetAll(
 		err := c.ShouldBindQuery(&queryParams)
 
 		if err != nil {
+			zap.L().Error(err.Error())
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
@@ -28,6 +30,7 @@ func GetAll(
 		products, err := productRepo.Find(queryParams.Category, queryParams.Size)
 
 		if err != nil {
+			zap.L().Error(err.Error())
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}

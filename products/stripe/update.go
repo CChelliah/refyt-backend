@@ -51,9 +51,6 @@ func UpdateProduct(name string, price int64, description string, rrp int64, desi
 		return product, err
 	}
 
-	fmt.Println(product.DefaultPrice)
-	fmt.Println(product.DefaultPrice.UnitAmount)
-
 	return product, nil
 
 }

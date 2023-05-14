@@ -8,7 +8,7 @@ type ProductBooking struct {
 	StartDate      time.Time `json:"startDate"`
 	EndDate        time.Time `json:"endDate"`
 	Status         string    `json:"status"`
-	ShippingMethod string    `json:"shippingMethod"`
+	ShippingMethod *string   `json:"shippingMethod"`
 	Product        Product   `json:"product"`
 }
 

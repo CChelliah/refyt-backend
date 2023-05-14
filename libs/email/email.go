@@ -6,7 +6,7 @@ import (
 
 type EmailService interface {
 	SendWelcomeEmail(toEmailAddress string) (err error)
-	SendOrderConfirmationEmail(toEmailAddress string, productBookings []models.ProductBooking) (err error)
+	SendOrderConfirmationEmail(toEmailAddress string, productBookings models.ProductBooking) (err error)
 	SendNoticeOfLateFeeEmail() (err error)
 	SendShippedOrderEmail() (err error)
 	SendPickupReturnReminder() (err error)

@@ -19,4 +19,11 @@ var (
 	ProductCreatedEvent = EventName("product.created")
 	ProductUpdatedEvent = EventName("product.updated")
 	ProductDeletedEvent = EventName("product.deleted")
+
+	BookingCreatedEvent   = EventName("booking.created")
+	BookingScheduledEvent = EventName("booking.scheduled")
+	BookingUpdatedEvent   = EventName("booking.updated")
+
+	PaymentCreatedEvent   = EventName("payment.created")
+	PaymentSucceededEvent = EventName("payment.succeeded")
 )

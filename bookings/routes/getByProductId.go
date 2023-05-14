@@ -2,13 +2,15 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"refyt-backend/bookings/domain"
 	"refyt-backend/bookings/repo"
+	"refyt-backend/libs/events"
 	"time"
 )
 
-func GetBookingsByProductID(bookingRepo repo.BookingRepo) gin.HandlerFunc {
+func GetBookingsByProductID(bookingRepo repo.BookingRepo, eventStreamer events.IEventStreamer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		productID := c.Param("productId")
@@ -16,7 +18,9 @@ func GetBookingsByProductID(bookingRepo repo.BookingRepo) gin.HandlerFunc {
 		bookings, err := bookingRepo.FindBookingByProductID(c, productID)
 
 		if err != nil {
+			zap.L().Error(err.Error())
 			c.JSON(http.StatusInternalServerError, err.Error())
+			return
 		}
 
 		existingBookingResponse := toExistingBookingPayload(bookings)
