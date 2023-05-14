@@ -51,7 +51,7 @@ func UploadFile(productID string, productImages []*multipart.FileHeader) (imageU
 		}
 
 		bucket := "refyt"
-		key := fmt.Sprintf("%s-%d.jpg", productID, i)
+		key := fmt.Sprintf("%s-%d.jpeg", productID, i)
 
 		_, err = client.PutObject(&s3.PutObjectInput{
 			Body:   file,
