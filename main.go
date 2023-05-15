@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/gin-contrib/cors"
@@ -25,6 +26,8 @@ var (
 )
 
 func main() {
+
+	zap.L().Info(fmt.Sprintf("Starting refyt application..."))
 
 	firebaseAuth := config.SetupFirebase()
 
