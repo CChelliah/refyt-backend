@@ -9,6 +9,7 @@ import (
 	"refyt-backend/libs/events"
 	"refyt-backend/libs/uow"
 	"refyt-backend/payments/repo"
+	stripeGateway "refyt-backend/payments/stripe"
 )
 
 type webhookPayload struct {
@@ -16,6 +17,7 @@ type webhookPayload struct {
 		Object struct {
 			Id            string `json:"id"`
 			PaymentStatus string `json:"payment_status"`
+			PaymentIntent string `json:"payment_intent"`
 			ShippingCost  struct {
 				ShippingRate string `json:"shipping_rate"`
 			} `json:"shipping_cost"`
@@ -47,7 +49,6 @@ func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.
 
 			if payload.Type == "checkout.session.completed" && payload.Data.Object.PaymentStatus != "Paid" {
 
-				zap.L().Error(fmt.Sprintf("ID is %s", payload.Data.Object.Id))
 				payment, err := paymentRepo.FindPaymentByCheckoutSessionID(ctx, uow, payload.Data.Object.Id)
 
 				if err != nil {
@@ -58,6 +59,13 @@ func PaymentCompletedWebhook(paymentRepo repo.PaymentRepository, uowManager uow.
 				event := payment.SetPaymentPaid()
 
 				err = paymentRepo.Store(ctx, uow, payment)
+
+				if err != nil {
+					zap.L().Error(err.Error())
+					return err
+				}
+
+				err = stripeGateway.AttachPaymentMethod(payload.Data.Object.PaymentIntent)
 
 				if err != nil {
 					zap.L().Error(err.Error())

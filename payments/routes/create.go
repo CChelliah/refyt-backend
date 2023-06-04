@@ -46,7 +46,14 @@ func CreateCheckout(paymentRepo repo.PaymentRepository, uowManager uow.UnitOfWor
 				return err
 			}
 
-			session, err = stripeGateway.NewCheckoutSession(booking)
+			stripeID, err := paymentRepo.FindStripeCustomerID(ctx, booking.CustomerID)
+
+			if err != nil {
+				zap.L().Error(err.Error())
+				return err
+			}
+
+			session, err = stripeGateway.NewCheckoutSession(booking, stripeID)
 
 			if err != nil {
 				zap.L().Error(err.Error())

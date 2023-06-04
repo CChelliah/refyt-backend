@@ -17,4 +17,6 @@ const (
 
 	findPaymentByCheckoutSessionID = `SELECT payment_id, checkout_session_id, status, booking_id, created_at, updated_at 
 							FROM payment_service.payments WHERE checkout_session_id = $1`
+
+	findStripeCustomerByID = `SELECT stripe_id FROM customer_service.customers WHERE customer_id = $1`
 )

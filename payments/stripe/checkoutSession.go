@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func NewCheckoutSession(item domain.Booking) (session *stripe.CheckoutSession, err error) {
+func NewCheckoutSession(item domain.Booking, stripeID string) (session *stripe.CheckoutSession, err error) {
 
 	stripeKey, exists := os.LookupEnv("STRIPE_API_KEY")
 
@@ -87,6 +87,13 @@ func NewCheckoutSession(item domain.Booking) (session *stripe.CheckoutSession, e
 				},
 			},
 		},
+		PaymentIntentData: &stripe.CheckoutSessionPaymentIntentDataParams{
+			SetupFutureUsage: stripe.String(string(stripe.PaymentIntentSetupFutureUsageOffSession)),
+		},
+		Customer: stripe.String(stripeID),
+		PaymentMethodTypes: stripe.StringSlice([]string{
+			"card",
+		}),
 	}
 
 	session, err = stripeClient.CheckoutSessions.New(params)
@@ -96,5 +103,4 @@ func NewCheckoutSession(item domain.Booking) (session *stripe.CheckoutSession, e
 	}
 
 	return session, nil
-
 }

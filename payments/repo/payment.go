@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	ErrPaymentNotFound = errors.New("payment not found")
-	ErrBookingNotFound = errors.New("booking not found")
+	ErrPaymentNotFound  = errors.New("payment not found")
+	ErrBookingNotFound  = errors.New("booking not found")
+	ErrCustomerNotFound = errors.New("customer not found")
 )
 
 type PaymentRepository struct {
@@ -117,4 +118,20 @@ func (repo *PaymentRepository) FindPaymentByCheckoutSessionID(ctx context.Contex
 
 	return payment, nil
 
+}
+
+func (repo *PaymentRepository) FindStripeCustomerID(ctx context.Context, customerID string) (stripeID string, err error) {
+
+	err = repo.db.QueryRowContext(ctx, findStripeCustomerByID, customerID).Scan(
+		&stripeID,
+	)
+
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return stripeID, ErrCustomerNotFound
+	case err != nil:
+		return stripeID, err
+	}
+
+	return stripeID, nil
 }
