@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
-	"refyt-backend/products/repo"
+	"refyt-backend/bff/repo"
 )
 
 type QueryParams struct {
@@ -14,7 +14,7 @@ type QueryParams struct {
 }
 
 func GetAll(
-	productRepo repo.ProductRepository) gin.HandlerFunc {
+	bffRepo repo.IBffRepo) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var queryParams QueryParams
@@ -27,7 +27,7 @@ func GetAll(
 			return
 		}
 
-		products, err := productRepo.Find(queryParams.Category, queryParams.Size)
+		products, err := bffRepo.Find(queryParams.Category, queryParams.Size)
 
 		if err != nil {
 			zap.L().Error(err.Error())

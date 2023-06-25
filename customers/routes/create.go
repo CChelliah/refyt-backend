@@ -16,8 +16,9 @@ import (
 )
 
 type createCustomerPayload struct {
-	Uid   string `json:"uid" binding:"required"`
-	Email string `json:"email" binding:"required"`
+	Uid      string `json:"uid" binding:"required"`
+	Email    string `json:"email" binding:"required"`
+	UserName string `json:"userName" binding:"required"`
 }
 
 func Create(customerRepo repo.ICustomerRepository, emailService email.EmailService, uowManager uow.UnitOfWorkManager, eventStreamer events.IEventStreamer) gin.HandlerFunc {
@@ -50,7 +51,7 @@ func Create(customerRepo repo.ICustomerRepository, emailService email.EmailServi
 
 		err = uowManager.Execute(c, func(c context.Context, uow uow.UnitOfWork) (err error) {
 
-			customer, event, err := domain.CreateCustomer(payload.Uid, payload.Email)
+			customer, event, err := domain.CreateCustomer(payload.Uid, payload.Email, payload.UserName)
 
 			if err != nil {
 				zap.L().Error(err.Error())

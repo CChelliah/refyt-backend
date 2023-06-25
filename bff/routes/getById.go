@@ -5,15 +5,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
-	"refyt-backend/products/repo"
+	"refyt-backend/bff/repo"
 )
 
-func Get(productRepo repo.ProductRepository) gin.HandlerFunc {
+func Get(bffRepository *repo.BffRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		productID := c.Param("productId")
 
-		product, err := productRepo.FindProductByID(productID)
+		product, err := bffRepository.FindProductByID(productID)
 
 		switch {
 		case errors.Is(err, repo.ErrProductNotFound):

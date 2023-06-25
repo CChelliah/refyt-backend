@@ -1,0 +1,1 @@
+ALTER TABLE customer_service.customers DROP COLUMN user_name;

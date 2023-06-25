@@ -11,6 +11,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"refyt-backend/bff"
 	"refyt-backend/bookings"
 	"refyt-backend/config"
 	"refyt-backend/customers"
@@ -91,6 +92,7 @@ func main() {
 
 	customers.Routes(httpRouter, db, eventRouter, eventStreamer)
 	products.Routes(httpRouter, db, eventRouter, eventStreamer)
+	bff.Routes(httpRouter, db, eventRouter, eventStreamer)
 	payments.Routes(httpRouter, db, eventRouter, eventStreamer)
 	bookings.Routes(httpRouter, db, eventRouter, eventStreamer)
 
@@ -102,10 +104,10 @@ func main() {
 		}
 	}()
 
-	//err = httpRouter.Run(":8080")
-	//if err != nil {
-	//	panic("error starting http router")
-	//}
+	err = httpRouter.Run(":8080")
+	if err != nil {
+		panic("error starting http router")
+	}
 
 	err = httpRouter.RunTLS(":8080", "/etc/letsencrypt/live/www.therefyt.com/fullchain.pem", "/etc/letsencrypt/live/www.therefyt.com/privkey.pem") //nolint
 	if err != nil {

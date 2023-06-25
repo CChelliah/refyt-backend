@@ -41,6 +41,7 @@ func (repo *CustomerRepository) FindCustomerByID(customerID string) (customer do
 		&customer.StripeConnectID,
 		&customer.CreatedAt,
 		&customer.UpdatedAt,
+		&customer.UserName,
 	)
 
 	switch {
@@ -61,6 +62,7 @@ func (repo *CustomerRepository) InsertCustomer(customer domain.Customer, stripeC
 		stripeCustomerID,
 		customer.CreatedAt,
 		customer.UpdatedAt,
+		customer.UserName,
 	).Scan(
 		&customer.CustomerID,
 		&customer.Email,
@@ -68,6 +70,7 @@ func (repo *CustomerRepository) InsertCustomer(customer domain.Customer, stripeC
 		&customer.CustomerNumber,
 		&customer.CreatedAt,
 		&customer.UpdatedAt,
+		&customer.UserName,
 	)
 
 	if err != nil {

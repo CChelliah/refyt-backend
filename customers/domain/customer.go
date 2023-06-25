@@ -9,6 +9,7 @@ import (
 
 type Customer struct {
 	CustomerID       string    `json:"customerId"`
+	UserName         string    `json:"userName"`
 	Email            string    `json:"email"`
 	CustomerNumber   string    `json:"customerNumber"`
 	StripeCustomerID string    `json:"stripeCustomerID"`
@@ -17,13 +18,14 @@ type Customer struct {
 	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
-func CreateCustomer(uid string, email string) (customer Customer, event events.Event, err error) {
+func CreateCustomer(uid string, email string, userName string) (customer Customer, event events.Event, err error) {
 
 	utcNow := time.Now()
 
 	customer = Customer{
 		CustomerID: uid,
 		Email:      email,
+		UserName:   userName,
 		CreatedAt:  utcNow,
 		UpdatedAt:  utcNow,
 	}

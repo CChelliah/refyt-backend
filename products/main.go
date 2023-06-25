@@ -23,9 +23,7 @@ func Routes(route *gin.Engine, db *libs.PostgresDatabase, eventRouter *message.R
 	{
 		product.POST("", routes.Create(productRepository, uowManager, eventStreamer))
 		product.PUT("/:productId", routes.Update(productRepository, uowManager, eventStreamer))
-		product.GET("/:productId", routes.Get(productRepository))
 		product.GET("/user/:userId", routes.GetByUserID(productRepository))
 		product.DELETE("/:productId", routes.Delete(productRepository, uowManager, eventStreamer))
-		product.GET("", routes.GetAll(productRepository))
 	}
 }
